@@ -1,0 +1,24 @@
+# Shared ignores for every module. Each module adds its own .gitignore for generated files.
+
+# Secrets: never commit real keys. Commit a .env.example with empty values instead.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Node (UI modules)
+node_modules/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+~$*

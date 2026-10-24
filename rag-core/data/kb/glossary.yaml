@@ -1,0 +1,200 @@
+# Glossary of programme and subject codes used in the faculty timetable.
+#
+# HAND-MAINTAINED. `just ingest` never writes this file; it lists codes missing from it in
+# data/processed/data_quality_report.md (section "Glossary coverage").
+#
+# Rules (enforced in rag_core.kb.glossary):
+#   full_name: TODO   -> no expansion known. Answers must use the code as written, never a guess.
+#   verified: false   -> expansion may be used, but answers relying on it get lower confidence
+#                        (thresholds.unverified_glossary_weight in config/settings.yaml).
+#   verified: true    -> confirmed by the department. Only set this after confirmation.
+#
+# Pre-filled expansions are standard abbreviations only; ALL entries are unverified until the
+# department confirms them. Keys are the codes exactly as they appear in the timetable.
+
+programmes:
+  BCA:
+    full_name: Bachelor of Computer Applications
+    aliases: []
+    verified: false
+  BSC:
+    full_name: Bachelor of Science
+    aliases: [BSc]
+    verified: false
+  MCA:
+    full_name: Master of Computer Applications
+    aliases: []
+    verified: false
+  MSAIM:
+    full_name: MSc Artificial Intelligence and Machine Learning
+    # "MSc AIML" is the spelling in the sheet's Programmes Taught column; "MSc AI and ML" is the
+    # problem statement's; bare "AIML" is how visitors say it. Linking them to MSAIM is an
+    # inference until verified.
+    aliases: [MSc AIML, MSc AI and ML, AIML]
+    verified: false
+  MSC:
+    # Only seen in "MSC CSA" (Dr Sandeep J, Saturday); the sheet's notes call it a separate block.
+    full_name: TODO
+    aliases: []
+    verified: false
+
+subjects:
+  ACTIVITY:
+    full_name: TODO
+    aliases: []
+    verified: false
+  ADA:
+    full_name: TODO
+    aliases: []
+    verified: false
+  AMI:
+    full_name: TODO
+    aliases: []
+    verified: false
+  BI:
+    full_name: TODO
+    aliases: []
+    verified: false
+  BT/DF:
+    # Written as one code in the sheet ("7 BCA BT/DF").
+    full_name: TODO
+    aliases: []
+    verified: false
+  C PROG:
+    full_name: TODO
+    aliases: []
+    verified: false
+  CN:
+    full_name: Computer Networks
+    aliases: []
+    verified: false
+  CPCG:
+    # Also appears bare (no programme or semester) in some timetable lines.
+    full_name: TODO
+    aliases: []
+    verified: false
+  CSA:
+    # Only seen in "MSC CSA"; may be a programme/stream name rather than a subject.
+    full_name: TODO
+    aliases: []
+    verified: false
+  CV:
+    full_name: TODO
+    aliases: []
+    verified: false
+  DAA:
+    full_name: TODO
+    aliases: []
+    verified: false
+  DBMS:
+    full_name: Database Management Systems
+    aliases: []
+    verified: false
+  DEV:
+    full_name: TODO
+    aliases: []
+    verified: false
+  DF:
+    # Distinct from the combined code BT/DF.
+    full_name: TODO
+    aliases: []
+    verified: false
+  DLD:
+    full_name: TODO
+    aliases: []
+    verified: false
+  DSA:
+    full_name: Data Structures and Algorithms
+    aliases: []
+    verified: false
+  DV:
+    full_name: TODO
+    aliases: []
+    verified: false
+  FSD:
+    full_name: TODO
+    aliases: []
+    verified: false
+  IoT:
+    full_name: Internet of Things
+    aliases: []
+    verified: false
+  JAVA:
+    full_name: TODO
+    aliases: []
+    verified: false
+  MDC:
+    # Also appears bare (no programme or semester) in some timetable lines.
+    full_name: TODO
+    aliases: []
+    verified: false
+  ML:
+    full_name: Machine Learning
+    aliases: []
+    verified: false
+  MOP:
+    full_name: TODO
+    aliases: []
+    verified: false
+  MOT:
+    full_name: TODO
+    aliases: []
+    verified: false
+  NDM:
+    full_name: TODO
+    aliases: []
+    verified: false
+  OS:
+    full_name: Operating Systems
+    aliases: []
+    verified: false
+  PP:
+    full_name: TODO
+    aliases: []
+    verified: false
+  PRJ:
+    full_name: TODO
+    aliases: []
+    verified: false
+  PYTHON:
+    full_name: TODO
+    aliases: []
+    verified: false
+  RM:
+    # Collides with Dr Ramamurthy B's short name "RM"; context decides which is meant.
+    full_name: Research Methodology
+    aliases: []
+    verified: false
+  RPA:
+    full_name: TODO
+    aliases: []
+    verified: false
+  SE:
+    full_name: Software Engineering
+    aliases: []
+    verified: false
+  SP:
+    # SP, SPR and SPD are separate codes in the sheet; do not merge them.
+    full_name: TODO
+    aliases: []
+    verified: false
+  SPD:
+    full_name: TODO
+    aliases: []
+    verified: false
+  SPR:
+    full_name: TODO
+    aliases: []
+    verified: false
+  TML:
+    full_name: TODO
+    aliases: []
+    verified: false
+  UI/UX:
+    full_name: TODO
+    aliases: []
+    verified: false
+  WSD:
+    full_name: TODO
+    aliases: []
+    verified: false

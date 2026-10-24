@@ -1,0 +1,73 @@
+# Recognition vocabulary for entity extraction (rag_core.nlu.entities), HAND-MAINTAINED and versioned.
+#
+# This is NOT a source of facts. It only lets the extractor recognise mentions that the KB has no
+# records for yet. Facility and event mentions are returned unlinked (canonical_id: null) until a
+# verified data file for them exists, so questions about them still escalate.
+# `just index` copies this file into data/index/gazetteer.json; rebuild after editing it.
+# Phrases are matched after normalisation (lower case, punctuation removed), longest phrase first,
+# so "seminar hall" (facility) wins over "seminar" (event).
+
+# Kind -> phrases. The kind is reported on the mention (e.g. kind: washroom) for analytics.
+facilities:
+  washroom: [washroom, washrooms, toilet, toilets, restroom, restrooms, rest room, bathroom, ladies toilet, gents toilet, ladies room, gents room]
+  classroom: [classroom, classrooms, class room, class rooms, lecture hall]
+  # "lab" right after a subject ("ML lab", "python lab") is a class, not a place: the extractor drops it there.
+  lab: [lab, labs, laboratory, computer lab, computer labs]
+  staff_room: [staff room, staffroom, faculty room]
+  wifi: [wifi, wi fi, internet, wireless internet]
+  drinking_water: [drinking water, water, water cooler, water purifier, water dispenser]
+  printing: [printer, printing, printout, print out, printouts, xerox, photocopy, photocopier]
+  lift: [lift, lifts, elevator, elevators]
+  stairs: [stairs, staircase]
+  canteen: [canteen, cafeteria, food court]
+  library: [library]
+  waiting_area: [waiting area, waiting room, waiting hall, lounge, seating area]
+  charging_point: [charging point, charging points, charging station, charger, charge my phone, charge my mobile, charge my laptop]
+  first_aid: [first aid, first aid box, medical room, infirmary]
+  parking: [parking]
+  seminar_hall: [seminar hall, seminar room, auditorium, conference room, conference hall, board room]
+  department_office: [department office, hod office, hod cabin, hods office, hods cabin]
+  reception: [reception, front desk, help desk]
+
+events:
+  event: [event, events]
+  seminar: [seminar, seminars, webinar, webinars]
+  workshop: [workshop, workshops]
+  guest_lecture: [guest lecture, guest lectures, guest talk, guest talks]
+  fest: [fest, fests, tech fest, techfest, cultural fest]
+  hackathon: [hackathon, hackathons]
+  conference: [conference, conferences, symposium]
+  club_meeting: [club meeting, club meetings, coding club]
+  orientation: [orientation, induction programme, induction program]
+  competition: [competition, competitions, contest]
+
+# Words around a name. Ignored when matching names, used as evidence for short codes and unknown
+# names, and kept in the mention's surface text ("Dr Deepa", "Sridevi ma'am").
+# A title before a name that is not in the KB ("Dr Ravi") yields an UNLINKED faculty mention only
+# for `unknown_name_titles`: words like "father" or "professor" are too common to trust alone.
+titles: [dr, doctor, prof, professor, fr, father, rev, mr, mrs, ms, shri]
+unknown_name_titles: [dr, prof, fr]
+polite_suffixes: [sir, mam, maam, madam, madame, miss, ji, ma]
+
+# Ordinary words visitors say right before or after a person's name, which are never part of a name.
+# The extractor treats any OTHER word beside a partly matched name ("Dr John Mathew": "John" is Dr Tegil J
+# John's surname) as possibly more name: it then declines or asks "do you mean ...?" instead of answering
+# about the wrong person. Listing a word here lets "Is Dr John inside?" be answered directly.
+# NEVER add a word that is part of any faculty name (a test checks: e.g. "joy" is a surname).
+# Words in the extractor's stopword list (is, in, here, free, available, office, cabin, teach ...) need no entry.
+name_adjacent_words: [
+  inside, outside, out, left, leave, leaving, gone, went, going, come, came, coming, arrived, arrive, arriving,
+  back, returned, around, nearby, upstairs, downstairs, today, tomorrow, yesterday, now, already, still, yet,
+  busy, present, absent, moved, shifted, transferred, seated, right, again, soon, later, early, late, currently,
+  usually, also, too, okay, ok, anywhere, somewhere, sometime, retired, joined,
+  have, has, had, doing, done, did, take, give, gives, said, says, told, know, knows, help, helps, sign, approve,
+  guide, guides, talk, talks, speak, speaks, explain, check, attend, attends, offer, offers, mentioned, asked,
+  sent, invited, expecting, expects, wants, wanted, needs, needed,
+  call, calling, visit, visiting, ask, asking, contact, reach, need, want, looking, searching, waiting, wait,
+  inform, message, kindly, excuse, hey, hello, hi, thanks, thank,
+]
+
+# Timetable codes that are also everyday words (or Hindi/Hinglish words a kiosk will hear: "se",
+# "bi"), or collide with "rm" for room. These match only when written exactly as in the sheet
+# (case-sensitive), e.g. "SE" but not "se". All other codes also match in lower case ("ml", "dbms").
+exact_case_codes: [ACTIVITY, ADA, AMI, BI, CV, DEV, DF, DV, MOP, MOT, PP, RM, SE, SP]

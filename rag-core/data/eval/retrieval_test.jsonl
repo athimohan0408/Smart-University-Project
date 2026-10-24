@@ -1,0 +1,98 @@
+{"question": "Where can I find Dr Nisha Varghese?", "intent": "find_person", "gold": ["faculty:nisha-varghese:location"]}
+{"question": "where does deepa jose sit", "intent": "find_person", "gold": ["faculty:deepa-v-jose:location"]}
+{"question": "I'm looking for Dr. Sridevi", "intent": "find_person", "gold": ["faculty:sridevi-r:location"]}
+{"question": "Who is Dr Binayak Dutta?", "intent": "find_person", "gold": ["faculty:binayak-dutta:profile"]}
+{"question": "who sits in room 871", "intent": "find_person", "gold": ["room:871"]}
+{"question": "Which teachers are in cabin 622?", "intent": "find_person", "gold": ["room:622"]}
+{"question": "where is father jossy", "intent": "find_person", "gold": ["faculty:jossy-p-george:location"]}
+{"question": "where is Dr Suresh K's cabin", "intent": "find_person", "gold": ["faculty:suresh-k:location"]}
+{"question": "Tell me about Dr Helen K Joy", "intent": "find_person", "gold": ["faculty:helen-k-joy:profile"]}
+{"question": "Where is Dr Peter Augustin's office?", "intent": "find_person", "gold": ["faculty:peter-augustin-d:location"]}
+{"question": "can you tell me where dr gobi r is", "intent": "find_person", "gold": ["faculty:gobi-r:location"]}
+{"question": "where would I find Dr Shoney Sebastian", "intent": "find_person", "gold": ["faculty:shoney-sebastian:location"]}
+{"question": "where is Dr Naived George Eapen sitting", "intent": "find_person", "gold": ["faculty:naived-george-eapen:location"]}
+{"question": "Where is Dr Thirunavukkarasu's room", "intent": "find_person", "gold": ["faculty:thirunavukkarasu-v:location"]}
+{"question": "where is doctor kavita r", "intent": "find_person", "gold": ["faculty:kavitha-r:location"]}
+{"question": "where is dr sandeep", "intent": "find_person", "gold": ["faculty:sandeep-j:location"]}
+{"question": "where is Dr Rajesh Kanna", "intent": "find_person", "gold": ["faculty:rajesh-kanna-r:location"]}
+{"question": "who is in room 885", "intent": "find_person", "gold": ["room:885"]}
+{"question": "where is cynthia mam", "intent": "find_person", "gold": ["faculty:cynthia-t:location"]}
+{"question": "Which cabin is Dr Ashwini Patil in?", "intent": "find_person", "gold": ["faculty:ashwini-patil:location"]}
+{"question": "where is doctor nisha vargese", "intent": "find_person", "gold": ["faculty:nisha-varghese:location"]}
+{"question": "I need to find Dr Vijay Arputharaj", "intent": "find_person", "gold": ["faculty:vijay-arputharaj-j:location"]}
+{"question": "who is Dr Ramamurthy B", "intent": "find_person", "gold": ["faculty:ramamurthy-b:profile"]}
+{"question": "When are Dr Nisha Varghese's consultation hours?", "intent": "person_availability", "gold": ["faculty:nisha-varghese:consultation"]}
+{"question": "Is Dr Deepa V Jose free on Friday?", "intent": "person_availability", "gold": ["faculty:deepa-v-jose:consultation", "faculty:deepa-v-jose:schedule:friday"]}
+{"question": "can I meet Dr Gobi R on Wednesday", "intent": "person_availability", "gold": ["faculty:gobi-r:consultation", "faculty:gobi-r:schedule:wednesday"]}
+{"question": "When can I meet Dr Chandra J?", "intent": "person_availability", "gold": ["faculty:chandra-j:consultation"]}
+{"question": "Is Dr Tegil John available for consultation?", "intent": "person_availability", "gold": ["faculty:tegil-j-john:consultation"]}
+{"question": "Is Dr Binayak Dutta free now?", "intent": "person_availability", "now": "2026-10-20T14:30:00", "gold": ["faculty:binayak-dutta:consultation", "faculty:binayak-dutta:schedule:tuesday"]}
+{"question": "is sudhakar sir in his cabin on monday", "intent": "person_availability", "gold": ["faculty:sudhakar-t:consultation", "faculty:sudhakar-t:schedule:monday"]}
+{"question": "consultation timings of Dr Neha Singhal", "intent": "person_availability", "gold": ["faculty:neha-singhal:consultation"]}
+{"question": "When is Dr Smera C free to meet students?", "intent": "person_availability", "gold": ["faculty:smera-c:consultation"]}
+{"question": "Is Dr Somnath Sinha available on Thursday afternoon?", "intent": "person_availability", "gold": ["faculty:somnath-sinha:consultation", "faculty:somnath-sinha:schedule:thursday"]}
+{"question": "What time can I see Dr Kavitha R?", "intent": "person_availability", "gold": ["faculty:kavitha-r:consultation"]}
+{"question": "is dr shivangi free today", "intent": "person_availability", "now": "2026-10-21T10:00:00", "gold": ["faculty:shivangi-singh:consultation", "faculty:shivangi-singh:schedule:wednesday"]}
+{"question": "when is Dr Rajesh Kanna R available", "intent": "person_availability", "gold": ["faculty:rajesh-kanna-r:consultation"]}
+{"question": "office hours for Dr Logeshwaran", "intent": "person_availability", "gold": ["faculty:logeshwaran-j:consultation"]}
+{"question": "can I meet Dr Ramamurthy tomorrow", "intent": "person_availability", "now": "2026-10-20T09:00:00", "gold": ["faculty:ramamurthy-b:consultation", "faculty:ramamurthy-b:schedule:wednesday"]}
+{"question": "when does Dr Helen Joy meet students", "intent": "person_availability", "gold": ["faculty:helen-k-joy:consultation"]}
+{"question": "What is Dr Nisha Varghese's email?", "intent": "contact_info", "gold": ["faculty:nisha-varghese:profile"]}
+{"question": "email id of deepa jose", "intent": "contact_info", "gold": ["faculty:deepa-v-jose:profile"]}
+{"question": "How can I contact Dr Kavitha R?", "intent": "contact_info", "gold": ["faculty:kavitha-r:profile"]}
+{"question": "give me Dr Peter Augustin D's mail address", "intent": "contact_info", "gold": ["faculty:peter-augustin-d:profile"]}
+{"question": "What's the email of Dr Jossy P George", "intent": "contact_info", "gold": ["faculty:jossy-p-george:profile"]}
+{"question": "mail id of Dr Cynthia", "intent": "contact_info", "gold": ["faculty:cynthia-t:profile"]}
+{"question": "how do I email Dr Nizar Banu", "intent": "contact_info", "gold": ["faculty:nizar-banu-p-k:profile"]}
+{"question": "Dr Smera's email address please", "intent": "contact_info", "gold": ["faculty:smera-c:profile"]}
+{"question": "Who teaches ML?", "intent": "find_by_subject", "gold": ["course:ml"]}
+{"question": "who teaches operating systems", "intent": "find_by_subject", "gold": ["course:os"]}
+{"question": "Which faculty handles DSA?", "intent": "find_by_subject", "gold": ["course:dsa"]}
+{"question": "who works on blockchain", "intent": "find_by_subject", "gold": ["faculty:sridevi-r:profile", "faculty:deepa-v-jose:profile", "faculty:kavitha-r:profile"]}
+{"question": "Who does research in natural language processing?", "intent": "find_by_subject", "gold": ["faculty:nisha-varghese:profile", "faculty:rupali-sunil-wagh:profile"]}
+{"question": "who teaches DAA", "intent": "find_by_subject", "gold": ["course:daa"]}
+{"question": "Does Dr Deepa V Jose teach OS?", "intent": "find_by_subject", "gold": ["faculty:deepa-v-jose:teaching:os"]}
+{"question": "Who teaches research methodology?", "intent": "find_by_subject", "gold": ["course:rm"]}
+{"question": "who is teaching TML", "intent": "find_by_subject", "gold": ["course:tml"]}
+{"question": "who teaches software engineering", "intent": "find_by_subject", "gold": ["course:se"]}
+{"question": "who is the expert in computer vision", "intent": "find_by_subject", "gold": ["faculty:naived-george-eapen:profile"]}
+{"question": "who works on federated learning", "intent": "find_by_subject", "gold": ["faculty:vijay-arputharaj-j:profile"]}
+{"question": "who teaches python", "intent": "find_by_subject", "gold": ["course:python"]}
+{"question": "anyone here working on cloud computing", "intent": "find_by_subject", "gold": ["faculty:sridevi-r:profile"]}
+{"question": "who teaches dbms", "intent": "find_by_subject", "gold": ["course:dbms"]}
+{"question": "which professor takes the UI/UX class", "intent": "find_by_subject", "gold": ["course:ui-ux"]}
+{"question": "who handles the FSD lab", "intent": "find_by_subject", "gold": ["course:fsd"]}
+{"question": "who is into deep learning research", "intent": "find_by_subject", "gold": ["faculty:nisha-varghese:profile", "faculty:sridevi-r:profile", "faculty:helen-k-joy:profile"]}
+{"question": "Where is room 874?", "intent": "find_room", "gold": ["room:874"]}
+{"question": "How do I get to room 880", "intent": "find_room", "gold": ["room:880"]}
+{"question": "where is cabin 607A", "intent": "find_room", "gold": ["room:607a"]}
+{"question": "where is room 974", "intent": "find_room", "gold": ["room:974"]}
+{"question": "Where is the MSc AI and ML classroom?", "intent": "find_room", "gold": ["programme:msaim"]}
+{"question": "where is the ML class held", "intent": "find_room", "gold": ["course:ml"]}
+{"question": "where is room eight seven seven", "intent": "find_room", "gold": ["room:877"]}
+{"question": "where is room 710", "intent": "find_room", "gold": ["room:710"]}
+{"question": "where is the MCA classroom", "intent": "find_room", "gold": ["programme:mca"]}
+{"question": "where is room 014", "intent": "find_room", "gold": ["room:014"]}
+{"question": "which way to room 883", "intent": "find_room", "gold": ["room:883"]}
+{"question": "where is room 8 7 9", "intent": "find_room", "gold": ["room:879"]}
+{"question": "What classes does Dr Nisha Varghese have on Monday?", "intent": "schedule_query", "gold": ["faculty:nisha-varghese:schedule:monday"]}
+{"question": "Dr Deepa Jose timetable for Tuesday", "intent": "schedule_query", "gold": ["faculty:deepa-v-jose:schedule:tuesday"]}
+{"question": "what does Dr Gobi R teach", "intent": "schedule_query", "gold": ["faculty:gobi-r:teaching:dev", "faculty:gobi-r:teaching:dv", "faculty:gobi-r:teaching:sp"]}
+{"question": "Is Dr Gobi R taking a class now?", "intent": "schedule_query", "now": "2026-10-19T10:00:00", "gold": ["faculty:gobi-r:schedule:monday"]}
+{"question": "When does Dr Neha Singhal teach SE?", "intent": "schedule_query", "gold": ["faculty:neha-singhal:schedule:wednesday", "faculty:neha-singhal:schedule:friday"]}
+{"question": "what are Dr Cynthia T's classes on Wednesday", "intent": "schedule_query", "gold": ["faculty:cynthia-t:schedule:wednesday"]}
+{"question": "Dr Chandra J schedule Friday", "intent": "schedule_query", "gold": ["faculty:chandra-j:schedule:friday"]}
+{"question": "which subjects does Dr Kavitha R teach", "intent": "schedule_query", "gold": ["faculty:kavitha-r:teaching:dsa", "faculty:kavitha-r:teaching:ml", "faculty:kavitha-r:teaching:pp", "faculty:kavitha-r:teaching:sp"]}
+{"question": "does Dr Somnath have class on Saturday", "intent": "schedule_query", "gold": ["faculty:somnath-sinha:schedule:saturday"]}
+{"question": "ML classes on Monday", "intent": "schedule_query", "gold": ["faculty:nisha-varghese:schedule:monday"]}
+{"question": "Dr Helen K Joy's timetable on Thursday", "intent": "schedule_query", "gold": ["faculty:helen-k-joy:schedule:thursday"]}
+{"question": "what is Dr Rajesh Kanna R teaching this semester", "intent": "schedule_query", "gold": ["faculty:rajesh-kanna-r:teaching:df", "faculty:rajesh-kanna-r:teaching:spd", "faculty:rajesh-kanna-r:teaching:spr"]}
+{"question": "Dr Binayak's classes on saturday", "intent": "schedule_query", "gold": ["faculty:binayak-dutta:schedule:saturday"]}
+{"question": "What is MSc AIML?", "intent": "programme_info", "gold": ["programme:msaim"]}
+{"question": "Tell me about the MCA programme", "intent": "programme_info", "gold": ["programme:mca"]}
+{"question": "what subjects are there in BCA", "intent": "programme_info", "gold": ["programme:bca"]}
+{"question": "which faculty teach in MSc AI and ML", "intent": "programme_info", "gold": ["programme:msaim"]}
+{"question": "What is BSc?", "intent": "programme_info", "gold": ["programme:bsc"]}
+{"question": "what is TML", "intent": "programme_info", "gold": ["course:tml"]}
+{"question": "what is the subject DAA about", "intent": "programme_info", "gold": ["course:daa"]}
+{"question": "what courses come under the master of computer applications", "intent": "programme_info", "gold": ["programme:mca"]}

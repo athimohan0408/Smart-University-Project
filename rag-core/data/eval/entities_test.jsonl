@@ -1,0 +1,105 @@
+{"text": "Where is Dr. Deepa V. Jose's cabin?", "entities": [{"type": "faculty", "id": "faculty:deepa-v-jose"}]}
+{"text": "deepa jose mam office", "entities": [{"type": "faculty", "id": "faculty:deepa-v-jose"}]}
+{"text": "I want to meet Sridevi ma'am", "entities": [{"type": "faculty", "id": "faculty:sridevi-r"}]}
+{"text": "where is father jossy sitting", "entities": [{"type": "faculty", "id": "faculty:jossy-p-george"}]}
+{"text": "Is Fr. Jossy in his office now?", "now": "2026-10-05T10:30:00", "entities": [{"type": "faculty", "id": "faculty:jossy-p-george"}, {"type": "time", "id": "time:10:30"}]}
+{"text": "Dr. Syam Mohan cabin number", "entities": [{"type": "faculty", "id": "faculty:syam-mohan-e"}]}
+{"text": "who is Dr Thirunavukarasu", "entities": [{"type": "faculty", "id": "faculty:thirunavukkarasu-v"}]}
+{"text": "where can i find peter augustine sir", "entities": [{"type": "faculty", "id": "faculty:peter-augustin-d"}]}
+{"text": "Rupali Wag madam room", "entities": [{"type": "faculty", "id": "faculty:rupali-sunil-wagh"}]}
+{"text": "Nizar Banu madam email", "entities": [{"type": "faculty", "id": "faculty:nizar-banu-p-k"}]}
+{"text": "kavitha mam email id", "entities": [{"type": "faculty", "id": "faculty:kavitha-r"}]}
+{"text": "Where is Suresh sir's cabin?", "entities": [{"type": "faculty", "id": "faculty:suresh-k"}]}
+{"text": "Ashwini Patil office", "entities": [{"type": "faculty", "id": "faculty:ashwini-patil"}]}
+{"text": "Is Dr Shoney Sebastian on this floor?", "entities": [{"type": "faculty", "id": "faculty:shoney-sebastian"}]}
+{"text": "where is Sri devi mam", "entities": [{"type": "faculty", "id": "faculty:sridevi-r"}]}
+{"text": "Neha Singhal and Helen Joy share a room?", "entities": [{"type": "faculty", "id": "faculty:neha-singhal"}, {"type": "faculty", "id": "faculty:helen-k-joy"}]}
+{"text": "Dr Logeswaran", "entities": [{"type": "faculty", "id": "faculty:logeshwaran-j"}]}
+{"text": "Where is George sir?", "entities": [{"type": "faculty", "ambiguous": ["faculty:jossy-p-george", "faculty:naived-george-eapen"]}]}
+{"text": "I am looking for Dr George", "entities": [{"type": "faculty", "ambiguous": ["faculty:jossy-p-george", "faculty:naived-george-eapen"]}]}
+{"text": "Where is Dr Neeha?", "entities": [{"type": "faculty", "ambiguous": ["faculty:neetha-s-s", "faculty:neha-singhal"]}]}
+{"text": "where is Singh madam", "entities": [{"type": "faculty", "id": "faculty:shivangi-singh"}]}
+{"text": "tegil john sir free now?", "now": "2026-10-05T10:30:00", "entities": [{"type": "faculty", "id": "faculty:tegil-j-john"}, {"type": "time", "id": "time:10:30"}]}
+{"text": "Sudhakar sir consultation hours on Friday", "entities": [{"type": "faculty", "id": "faculty:sudhakar-t"}, {"type": "day", "id": "day:friday"}]}
+{"text": "Where is Dr Ravi Kumar's cabin?", "entities": [{"type": "faculty", "id": null, "text": "Ravi Kumar"}]}
+{"text": "Dr. Naived", "entities": [{"type": "faculty", "id": "faculty:naived-george-eapen"}]}
+{"text": "manasa kulkarni mam", "entities": [{"type": "faculty", "id": "faculty:manasa-n-kulkarni"}]}
+{"text": "where is cynthia mam", "entities": [{"type": "faculty", "id": "faculty:cynthia-t"}]}
+{"text": "Dr Binayak and Dr Somnath", "entities": [{"type": "faculty", "id": "faculty:binayak-dutta"}, {"type": "faculty", "id": "faculty:somnath-sinha"}]}
+{"text": "dr kavita office", "entities": [{"type": "faculty", "id": "faculty:kavitha-r"}]}
+{"text": "Where is Dr. Saxena?", "entities": [{"type": "faculty", "id": "faculty:surabhi-saxena"}]}
+{"text": "logeshwaran sir and smera mam room", "entities": [{"type": "faculty", "id": "faculty:logeshwaran-j"}, {"type": "faculty", "id": "faculty:smera-c"}]}
+{"text": "Where is SU sir?", "entities": [{"type": "faculty", "id": "faculty:sudhakar-t"}]}
+{"text": "where is DVJ", "entities": [{"type": "faculty", "id": "faculty:deepa-v-jose"}]}
+{"text": "as soon as possible i need the ML teacher", "entities": [{"type": "course", "id": "course:ml"}, {"type": "topic", "id": "topic:machine-learning"}]}
+{"text": "Who teaches RM for MCA?", "entities": [{"type": "course", "id": "course:rm"}, {"type": "programme", "id": "programme:mca"}]}
+{"text": "RM sir cabin", "entities": [{"type": "faculty", "id": "faculty:ramamurthy-b"}]}
+{"text": "is dr kns free now", "now": "2026-10-05T10:30:00", "entities": [{"type": "faculty", "id": "faculty:saravanan-k-n"}, {"type": "time", "id": "time:10:30"}]}
+{"text": "where does SS sit", "entities": [{"type": "faculty", "id": "faculty:shoney-sebastian"}]}
+{"text": "Who teaches machine learning?", "entities": [{"type": "course", "id": "course:ml"}, {"type": "topic", "id": "topic:machine-learning"}]}
+{"text": "who handles M L for MSc AIML", "entities": [{"type": "course", "id": "course:ml"}, {"type": "topic", "id": "topic:machine-learning"}, {"type": "programme", "id": "programme:msaim"}]}
+{"text": "DBMS lab faculty for BSc", "entities": [{"type": "course", "id": "course:dbms"}, {"type": "programme", "id": "programme:bsc"}]}
+{"text": "who is working on deep learning", "entities": [{"type": "topic", "id": "topic:deep-learning"}]}
+{"text": "Any faculty doing research in blockchain?", "entities": [{"type": "topic", "id": "topic:blockchain"}]}
+{"text": "cloud computing expert", "entities": [{"type": "topic", "id": "topic:cloud-computing"}]}
+{"text": "who works on NLP", "entities": [{"type": "topic", "id": "topic:natural-language-processing"}]}
+{"text": "computer vision faculty", "entities": [{"type": "topic", "id": "topic:computer-vision"}]}
+{"text": "Who teaches computer networks?", "entities": [{"type": "course", "id": "course:cn"}, {"type": "topic", "id": "topic:computer-networks"}]}
+{"text": "who takes the python lab for BCA", "entities": [{"type": "course", "id": "course:python"}, {"type": "programme", "id": "programme:bca"}]}
+{"text": "who is teaching web development", "entities": []}
+{"text": "research methodology who is handling", "entities": [{"type": "course", "id": "course:rm"}]}
+{"text": "who teaches data structures", "entities": [{"type": "topic", "id": "topic:data-structures"}]}
+{"text": "IoT faculty", "entities": [{"type": "course", "id": "course:iot"}, {"type": "topic", "id": "topic:iot"}]}
+{"text": "who teaches operating systems", "entities": [{"type": "course", "id": "course:os"}]}
+{"text": "software engineering teacher for MCA", "entities": [{"type": "course", "id": "course:se"}, {"type": "topic", "id": "topic:software-engineering"}, {"type": "programme", "id": "programme:mca"}]}
+{"text": "Who teaches artificial intelligence?", "entities": [{"type": "topic", "id": "topic:artificial-intelligence"}]}
+{"text": "large language models research", "entities": [{"type": "topic", "id": "topic:large-language-models"}]}
+{"text": "Is there a workshop on machine learning tomorrow?", "now": "2026-10-05T10:30:00", "entities": [{"type": "event", "id": null, "text": "workshop"}, {"type": "course", "id": "course:ml"}, {"type": "topic", "id": "topic:machine-learning"}, {"type": "day", "id": "day:tuesday"}]}
+{"text": "Where is the MSc AI and ML classroom?", "entities": [{"type": "programme", "id": "programme:msaim"}, {"type": "facility", "id": null, "text": "classroom"}]}
+{"text": "What is M.Sc AIML about", "entities": [{"type": "programme", "id": "programme:msaim"}]}
+{"text": "AIML timetable", "entities": [{"type": "programme", "id": "programme:msaim"}]}
+{"text": "how many semesters in MCA", "entities": [{"type": "programme", "id": "programme:mca"}]}
+{"text": "tell me about the masters in computer applications programme", "entities": [{"type": "programme", "id": "programme:mca"}]}
+{"text": "Is BCA offered here?", "entities": [{"type": "programme", "id": "programme:bca"}]}
+{"text": "difference between MCA and MSc AIML", "entities": [{"type": "programme", "id": "programme:mca"}, {"type": "programme", "id": "programme:msaim"}]}
+{"text": "Where is room 874?", "entities": [{"type": "room", "id": "room:874"}]}
+{"text": "how to go to 885", "entities": [{"type": "room", "id": "room:885"}]}
+{"text": "room no 890 kidhar hai", "entities": [{"type": "room", "id": "room:890"}]}
+{"text": "where is staff room 607A", "entities": [{"type": "room", "id": "room:607a"}, {"type": "facility", "id": null, "text": "staff room"}]}
+{"text": "room 8 7 9", "entities": [{"type": "room", "id": "room:879"}]}
+{"text": "Where is room 999?", "entities": [{"type": "room", "id": null, "text": "room 999"}]}
+{"text": "who sits in cabin 871", "entities": [{"type": "room", "id": "room:871"}]}
+{"text": "room 14 block 1", "entities": [{"type": "room", "id": "room:014"}]}
+{"text": "room eight seven seven", "entities": [{"type": "room", "id": "room:877"}]}
+{"text": "washroom where", "entities": [{"type": "facility", "id": null, "text": "washroom"}]}
+{"text": "Is there wifi on this floor?", "entities": [{"type": "facility", "id": null, "text": "wifi"}]}
+{"text": "can I get a printout somewhere nearby", "entities": [{"type": "facility", "id": null, "text": "printout"}]}
+{"text": "is the lift working", "entities": [{"type": "facility", "id": null, "text": "lift"}]}
+{"text": "any canteen nearby", "entities": [{"type": "facility", "id": null, "text": "canteen"}]}
+{"text": "Can you show me the way to the computer lab?", "entities": [{"type": "facility", "id": null, "text": "computer lab"}]}
+{"text": "Are there any events today?", "now": "2026-10-05T10:30:00", "entities": [{"type": "event", "id": null, "text": "events"}, {"type": "day", "id": "day:monday"}]}
+{"text": "When is the tech fest this year?", "entities": [{"type": "event", "id": null, "text": "tech fest"}]}
+{"text": "any guest lecture on Friday afternoon", "entities": [{"type": "event", "id": null, "text": "guest lecture"}, {"type": "day", "id": "day:friday"}, {"type": "time", "id": "time:12:00-17:00"}]}
+{"text": "which event is going on in the seminar hall now", "now": "2026-10-05T10:30:00", "entities": [{"type": "event", "id": null, "text": "event"}, {"type": "facility", "id": null, "text": "seminar hall"}, {"type": "time", "id": "time:10:30"}]}
+{"text": "hackathon registration details", "entities": [{"type": "event", "id": null, "text": "hackathon"}]}
+{"text": "Can I meet Sandeep sir after lunch today?", "now": "2026-10-05T10:30:00", "entities": [{"type": "faculty", "id": "faculty:sandeep-j"}, {"type": "time", "id": "time:13:45-17:00"}, {"type": "day", "id": "day:monday"}]}
+{"text": "is saravanan sir taking any class at 10 tomorrow", "now": "2026-10-05T10:30:00", "entities": [{"type": "faculty", "id": "faculty:saravanan-k-n"}, {"type": "time", "id": "time:10:00"}, {"type": "day", "id": "day:tuesday"}]}
+{"text": "Is Dr Gobi free at 2 pm on Wednesday?", "entities": [{"type": "faculty", "id": "faculty:gobi-r"}, {"type": "time", "id": "time:14:00"}, {"type": "day", "id": "day:wednesday"}]}
+{"text": "limna mam free on friday afternoon", "entities": [{"type": "faculty", "id": "faculty:limna-das-p"}, {"type": "day", "id": "day:friday"}, {"type": "time", "id": "time:12:00-17:00"}]}
+{"text": "Can I meet Dr Chandra between 2 and 4?", "entities": [{"type": "faculty", "id": "faculty:chandra-j"}, {"type": "time", "id": "time:14:00-16:00"}]}
+{"text": "Is Nisha mam free at 7?", "entities": [{"type": "faculty", "id": "faculty:nisha-varghese"}, {"type": "time", "id": null, "text": "at 7"}]}
+{"text": "Vijay sir's Saturday classes", "entities": [{"type": "faculty", "id": "faculty:vijay-arputharaj-j"}, {"type": "day", "id": "day:saturday"}]}
+{"text": "is jobin sir available in the morning", "entities": [{"type": "faculty", "id": "faculty:jobin-francis"}, {"type": "time", "id": "time:07:30-12:00"}]}
+{"text": "Smera mam after 3 pm", "entities": [{"type": "faculty", "id": "faculty:smera-c"}, {"type": "time", "id": "time:15:00-17:00"}]}
+{"text": "what does Dr Kavitha teach on thursday from 11.45 to 1.45", "entities": [{"type": "faculty", "id": "faculty:kavitha-r"}, {"type": "day", "id": "day:thursday"}, {"type": "time", "id": "time:11:45-13:45"}]}
+{"text": "good morning madam", "entities": []}
+{"text": "thank you so much", "entities": []}
+{"text": "what is the capital of australia", "entities": []}
+{"text": "hostel fees for first year", "entities": []}
+{"text": "Can you help me solve this python error?", "entities": [{"type": "course", "id": "course:python"}]}
+{"text": "Where is Dr Nisha Sharma's cabin?", "entities": [{"type": "faculty", "id": null, "text": "Dr Nisha Sharma"}]}
+{"text": "Is Dr Mathew John in his cabin?", "entities": [{"type": "faculty", "id": null, "text": "Dr Mathew John"}]}
+{"text": "Where does Dr George Kurian sit?", "entities": [{"type": "faculty", "id": null, "text": "Dr George Kurian"}]}
+{"text": "where is dr sridevi krishnan", "entities": [{"type": "faculty", "id": null, "text": "dr sridevi krishnan"}]}
+{"text": "Where can I find Dr John?", "entities": [{"type": "faculty", "id": "faculty:tegil-j-john"}]}
+{"text": "Kindly Dr Nisha please", "entities": [{"type": "faculty", "id": "faculty:nisha-varghese"}]}

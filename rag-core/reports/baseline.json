@@ -1,0 +1,16 @@
+{
+  "split": "test",
+  "gold_sha256": "c745335a8b60753cd120470af0d4adc4af0c275db46dcfd365d97cfe97103964",
+  "written": "2026-10-24T08:19:50",
+  "settings": {
+    "generation": "templates (no LLM)",
+    "confidence": "weighted formula (not calibrated)"
+  },
+  "headline": {
+    "intent_accuracy": 0.9166666666666666,
+    "retrieval_recall_at_k": 1.0,
+    "qa_accuracy": 1.0,
+    "hallucination_rate": 0.0,
+    "unanswerable_answered_rate": 0.0
+  }
+}

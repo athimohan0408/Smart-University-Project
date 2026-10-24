@@ -1,0 +1,87 @@
+# Task runner. `just` ships with the dev extra (rust-just); otherwise install it from https://just.systems
+# Uses the active environment's `python`; point RAG_PYTHON at an interpreter to override.
+# Ports, paths, model names etc. come from config/settings.yaml, not from here.
+
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-Command"]
+
+python := env_var_or_default("RAG_PYTHON", "python")
+
+default:
+    @just --list
+
+# Install the package (editable) with dev tools. Add LLM extras separately, e.g. `pip install -e .[anthropic]`.
+install:
+    {{python}} -m pip install -e ".[dev]"
+
+# Faculty Excel -> data/processed/faculty.json + subject_codes_found.csv + data_quality_report.md
+ingest:
+    {{python}} -m rag_core.kb.ingest_faculty
+
+# Re-ingest, then facts -> data/index/{facts.jsonl, chroma/, bm25.pkl, gazetteer.json}. Safe to re-run.
+index: ingest
+    {{python}} -m rag_core.retrieval.build_index
+
+# Train the intent classifier (data/eval/intent_train.jsonl -> data/models/intent.joblib).
+# Needed once after install, then only when intents, training data or the embedding model change.
+train-intent:
+    {{python}} -m rag_core.nlu.train_intent
+
+# Held-out intent evaluation -> reports/intent_eval.md
+eval-intent:
+    {{python}} -m rag_core.nlu.eval_intent
+
+# Entity extraction + linking eval (data/eval/entities_test.jsonl) -> reports/entity_eval.md. Needs `just index`.
+eval-entities:
+    {{python}} -m rag_core.nlu.eval_entities
+
+# Retrieval eval + ablation (data/eval/retrieval_test.jsonl) -> reports/retrieval_eval.md. Needs `just index`.
+eval-retrieval:
+    {{python}} -m rag_core.retrieval.eval_retrieval
+
+# Run the unit tests
+test *args:
+    {{python}} -m pytest {{args}}
+
+# End-to-end QA eval on the TEST split -> reports/eval_<timestamp>.md/.json + reports/failures.csv.
+# Exits 1 if a headline metric regressed vs reports/baseline.json. Templates only: no LLM needed.
+eval *args:
+    {{python}} -m rag_core.eval.run_eval {{args}}
+
+# Re-run the test-split eval and store its headline metrics as reports/baseline.json (versioned)
+eval-baseline:
+    {{python}} -m rag_core.eval.run_eval --write-baseline
+
+# Fit the confidence calibrator + sweep the escalation threshold on the QA DEV split
+# -> reports/calibration.md, reports/threshold_sweep.md, data/models/confidence.joblib
+calibrate:
+    {{python}} -m rag_core.scoring.calibrate
+
+# Validate the LIVE LLM path (needs a provider key in .env; paid calls) -> reports/llm_validation.md
+validate-llm *args:
+    {{python}} -m rag_core.generation.validate_llm {{args}}
+
+# Test-split blindness: copies in other gold sets, exposed items, accuracy on the clean subset -> reports/eval_integrity.md
+eval-integrity:
+    {{python}} -m rag_core.eval.integrity
+
+# Package the gold sets for an independent human reviewer -> reports/human_review/*.csv (overwrites the CSVs)
+review-pack:
+    {{python}} -m rag_core.eval.review_pack
+
+# Regenerate docs/prompts.md from rag_core.generation.prompts
+prompts-doc:
+    {{python}} -m rag_core.generation.prompts
+
+# Ask one question from the command line, e.g. just ask "where is Dr Nisha Varghese's cabin?"
+# The question travels in an environment variable, so apostrophes and quotes never break the shell.
+[windows]
+ask $RAG_QUESTION:
+    {{python}} -m rag_core $env:RAG_QUESTION
+
+[unix]
+ask $RAG_QUESTION:
+    {{python}} -m rag_core "$RAG_QUESTION"
+
+# Serve the module over HTTP on api.host:api.port (POST /answer, GET /health, POST /reload-kb)
+serve:
+    {{python}} -m rag_core.api

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Environments and secrets
+.venv/
+venv/
+.env
+
+# Generated artefacts (rebuild with `just ingest index` / `just eval`)
+data/processed/*
+!data/processed/.gitkeep
+data/index/*
+!data/index/.gitkeep
+data/models/*
+!data/models/.gitkeep
+reports/*
+!reports/baseline.json
+!reports/iterations.md
+!reports/data_requests.md
+!reports/gold_review.md
+!reports/eval_integrity.md
+!reports/llm_validation.md
+!reports/human_review/
+logs/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+~$*

@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-core"
+version = "0.1.0"
+description = "Portion 1 (language + RAG core) of the AI receptionist for Central Block 8th floor, CHRIST University"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.1",
+    "openpyxl>=3.1",
+    "pydantic>=2",
+    "chromadb>=0.5",
+    "sentence-transformers>=3.0",
+    "rank-bm25>=0.2.2",
+    "rapidfuzz>=3.6",
+    "scikit-learn>=1.3",
+    "joblib>=1.3",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+]
+
+[project.optional-dependencies]
+# LLM providers are pluggable; install only the one selected in config/settings.yaml (llm.provider).
+anthropic = ["anthropic>=0.40"]
+openai = ["openai>=1.40"]
+ollama = ["ollama>=0.3"]
+llm-all = ["rag-core[anthropic,openai,ollama]"]
+dev = [
+    "pytest>=8",
+    "httpx>=0.27",      # required by fastapi.testclient
+    "rust-just>=1.30",  # provides the `just` runner on any OS, no admin rights needed
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "model: needs the downloaded embedding model and trained artifacts (skipped if the artifact is missing)",
+    "live: calls the configured LLM provider over the network (needs a key in .env and RAG_LIVE_TESTS=1)",
+]

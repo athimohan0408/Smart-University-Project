@@ -1,0 +1,6 @@
+# Normalise line endings so Windows, macOS and Linux teammates see the same files.
+* text=auto
+*.xlsx binary
+*.docx binary
+*.png binary
+*.jpg binary

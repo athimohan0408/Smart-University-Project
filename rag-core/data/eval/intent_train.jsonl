@@ -1,0 +1,497 @@
+{"text": "Where is Dr Nisha Varghese's cabin?", "intent": "find_person"}
+{"text": "nisha mam cabin", "intent": "find_person"}
+{"text": "where can i find deepa jose madam", "intent": "find_person"}
+{"text": "Who is Dr. Sridevi R?", "intent": "find_person"}
+{"text": "I have come to meet Cynthia ma'am. Where does she sit?", "intent": "find_person"}
+{"text": "gobi sir room", "intent": "find_person"}
+{"text": "Kindly tell me where Dr Somnath Sinha sits", "intent": "find_person"}
+{"text": "sudhakar sir staff room where", "intent": "find_person"}
+{"text": "Is Dr Tegil John on this floor?", "intent": "find_person"}
+{"text": "chandra madam office location", "intent": "find_person"}
+{"text": "Can you tell where is Kavitha ma'am's cabin?", "intent": "find_person"}
+{"text": "neha singhal maam kahan hai", "intent": "find_person"}
+{"text": "where is helen joy mam sitting", "intent": "find_person"}
+{"text": "Tell me about Dr Binayak Dutta", "intent": "find_person"}
+{"text": "which cabin is syam mohan sir", "intent": "find_person"}
+{"text": "neetha mam where", "intent": "find_person"}
+{"text": "I want to meet Dr Shivangi Singh, where is her room?", "intent": "find_person"}
+{"text": "jobin francis sir office", "intent": "find_person"}
+{"text": "Where is Ashwini Patil madam's cabin? Is it on this floor?", "intent": "find_person"}
+{"text": "who is deepa v jose", "intent": "find_person"}
+{"text": "My daughter asked me to meet Dr Nisha Varghese, where will I find her?", "intent": "find_person"}
+{"text": "were is nisha varghes mam cabin", "intent": "find_person"}
+{"text": "Where is the office of Professor Cynthia?", "intent": "find_person"}
+{"text": "binayak sir which block", "intent": "find_person"}
+{"text": "what is the research area of dr chandra", "intent": "find_person"}
+{"text": "Is Dr Nisha Varghese free now?", "intent": "person_availability"}
+{"text": "deepa mam free now", "intent": "person_availability"}
+{"text": "When can I meet Dr Sridevi?", "intent": "person_availability"}
+{"text": "What are Cynthia ma'am's consultation hours?", "intent": "person_availability"}
+{"text": "consultation time for gobi sir", "intent": "person_availability"}
+{"text": "Is Somnath sir available today?", "intent": "person_availability"}
+{"text": "can i meet sudhakar sir now", "intent": "person_availability"}
+{"text": "tegil sir available after 2", "intent": "person_availability"}
+{"text": "When is Dr Chandra J free on Monday?", "intent": "person_availability"}
+{"text": "kavitha madam is there in cabin now", "intent": "person_availability"}
+{"text": "May I know the meeting hours of Dr Neha Singhal?", "intent": "person_availability"}
+{"text": "helen mam consultation hours", "intent": "person_availability"}
+{"text": "Is Binayak sir in college today itself?", "intent": "person_availability"}
+{"text": "what time can parents meet syam mohan sir", "intent": "person_availability"}
+{"text": "neetha mam free time", "intent": "person_availability"}
+{"text": "Can I see Dr Shivangi Singh this afternoon?", "intent": "person_availability"}
+{"text": "jobin sir available tomorrow morning", "intent": "person_availability"}
+{"text": "office hours of ashwini patil", "intent": "person_availability"}
+{"text": "is nisha mam busy right now", "intent": "person_availability"}
+{"text": "When will Deepa Jose ma'am be free to meet?", "intent": "person_availability"}
+{"text": "consultaion hours sridevi mam", "intent": "person_availability"}
+{"text": "I need to meet Cynthia madam regarding my son's marks, when is she available?", "intent": "person_availability"}
+{"text": "gobi sir avalable now", "intent": "person_availability"}
+{"text": "Is Dr Kavitha free during lunch?", "intent": "person_availability"}
+{"text": "at what time does helen ma'am meet students", "intent": "person_availability"}
+{"text": "Who teaches machine learning?", "intent": "find_by_subject"}
+{"text": "ML teacher name", "intent": "find_by_subject"}
+{"text": "which faculty is handling data structures for MCA", "intent": "find_by_subject"}
+{"text": "who takes DSA", "intent": "find_by_subject"}
+{"text": "Who teaches operating systems?", "intent": "find_by_subject"}
+{"text": "os sir who", "intent": "find_by_subject"}
+{"text": "who is the DBMS faculty for BSc", "intent": "find_by_subject"}
+{"text": "python lab which madam takes", "intent": "find_by_subject"}
+{"text": "Who is teaching Java for 3rd sem BCA?", "intent": "find_by_subject"}
+{"text": "I have come to meet a faculty member who teaches Machine Learning. Where can I find them?", "intent": "find_by_subject"}
+{"text": "who works on natural language processing", "intent": "find_by_subject"}
+{"text": "any professor doing research in blockchain", "intent": "find_by_subject"}
+{"text": "deep learning expert in this department", "intent": "find_by_subject"}
+{"text": "who teach IoT for MCA", "intent": "find_by_subject"}
+{"text": "Which sir takes design and analysis of algorithms?", "intent": "find_by_subject"}
+{"text": "who is the faculty for full stack development", "intent": "find_by_subject"}
+{"text": "teacher for big data analysis", "intent": "find_by_subject"}
+{"text": "who handles the 2nd sem MSc AIML ML lab", "intent": "find_by_subject"}
+{"text": "machine lerning who teaches", "intent": "find_by_subject"}
+{"text": "I want to meet someone who knows about cryptography", "intent": "find_by_subject"}
+{"text": "Which madam teaches statistics?", "intent": "find_by_subject"}
+{"text": "who is good in image processing here", "intent": "find_by_subject"}
+{"text": "who teaches database management systems", "intent": "find_by_subject"}
+{"text": "Who should I meet for a doubt in data structures?", "intent": "find_by_subject"}
+{"text": "faculty for digital forensics", "intent": "find_by_subject"}
+{"text": "Where is room 874?", "intent": "find_room"}
+{"text": "room 871 where", "intent": "find_room"}
+{"text": "How do I get to room 877?", "intent": "find_room"}
+{"text": "Where is the MSc AIML classroom?", "intent": "find_room"}
+{"text": "aiml classroom where", "intent": "find_room"}
+{"text": "Where is the washroom?", "intent": "find_room"}
+{"text": "washroom kahan hai", "intent": "find_room"}
+{"text": "gents toilet", "intent": "find_room"}
+{"text": "Where is the computer lab?", "intent": "find_room"}
+{"text": "ML lab where", "intent": "find_room"}
+{"text": "which way to room 876", "intent": "find_room"}
+{"text": "Can you guide me to 878?", "intent": "find_room"}
+{"text": "where is the MCA 2nd year class", "intent": "find_room"}
+{"text": "Where is the staff room?", "intent": "find_room"}
+{"text": "room no 875 which side", "intent": "find_room"}
+{"text": "where is the seminar hall", "intent": "find_room"}
+{"text": "where is the department office", "intent": "find_room"}
+{"text": "How to reach the 8th floor lab?", "intent": "find_room"}
+{"text": "where is 872", "intent": "find_room"}
+{"text": "Is room 873 on this floor?", "intent": "find_room"}
+{"text": "where is the BCA classroom", "intent": "find_room"}
+{"text": "were is the restroom", "intent": "find_room"}
+{"text": "I need to go to the AI lab, which direction?", "intent": "find_room"}
+{"text": "Where is the project lab?", "intent": "find_room"}
+{"text": "location of room 874 please", "intent": "find_room"}
+{"text": "What does Dr Nisha Varghese teach on Monday?", "intent": "schedule_query"}
+{"text": "nisha mam timetable", "intent": "schedule_query"}
+{"text": "Which class is in the lab now?", "intent": "schedule_query"}
+{"text": "What class does Deepa ma'am have on Tuesday?", "intent": "schedule_query"}
+{"text": "sridevi mam monday classes", "intent": "schedule_query"}
+{"text": "Does Cynthia madam have class now?", "intent": "schedule_query"}
+{"text": "gobi sir schedule today", "intent": "schedule_query"}
+{"text": "When is the ML lab for 2nd sem MSc AIML?", "intent": "schedule_query"}
+{"text": "What is the timetable for MCA 2nd semester on Friday?", "intent": "schedule_query"}
+{"text": "Which subject does Somnath sir take on Wednesday?", "intent": "schedule_query"}
+{"text": "is sudhakar sir taking class now", "intent": "schedule_query"}
+{"text": "at what time is the DSA class", "intent": "schedule_query"}
+{"text": "what is happening in the ML lab at 10 am", "intent": "schedule_query"}
+{"text": "Tegil sir thursday timetable", "intent": "schedule_query"}
+{"text": "When does Chandra ma'am teach MCA?", "intent": "schedule_query"}
+{"text": "kavitha mam class timings", "intent": "schedule_query"}
+{"text": "Which classes does Neha Singhal have on Saturday?", "intent": "schedule_query"}
+{"text": "What time is 5th sem MSAIM TML class?", "intent": "schedule_query"}
+{"text": "helen mam class schedule", "intent": "schedule_query"}
+{"text": "what is binayak sir teaching today", "intent": "schedule_query"}
+{"text": "Is there any class in the lab right now?", "intent": "schedule_query"}
+{"text": "Syam sir friday class", "intent": "schedule_query"}
+{"text": "when is the python lab for bca", "intent": "schedule_query"}
+{"text": "Does Neetha ma'am teach on Thursday morning?", "intent": "schedule_query"}
+{"text": "shivangi mam lecture timings", "intent": "schedule_query"}
+{"text": "What is MSc AIML?", "intent": "programme_info"}
+{"text": "Which programmes are offered on this floor?", "intent": "programme_info"}
+{"text": "tell me about MCA", "intent": "programme_info"}
+{"text": "What subjects are taught in MSc AI and ML?", "intent": "programme_info"}
+{"text": "How many semesters does MCA have?", "intent": "programme_info"}
+{"text": "Is BSc offered here?", "intent": "programme_info"}
+{"text": "what is MSAIM", "intent": "programme_info"}
+{"text": "full form of MCA", "intent": "programme_info"}
+{"text": "Which courses are there in BCA 3rd semester?", "intent": "programme_info"}
+{"text": "What is the duration of the MSc Artificial Intelligence and Machine Learning programme?", "intent": "programme_info"}
+{"text": "msc aiml details", "intent": "programme_info"}
+{"text": "what programmes does the computer science department run", "intent": "programme_info"}
+{"text": "Does this floor handle BCA students?", "intent": "programme_info"}
+{"text": "MCA syllabus subjects", "intent": "programme_info"}
+{"text": "What specialisations are there in BSc?", "intent": "programme_info"}
+{"text": "Is there a PhD programme here?", "intent": "programme_info"}
+{"text": "how many sections in MCA", "intent": "programme_info"}
+{"text": "what will my son study in MSc AIML first year", "intent": "programme_info"}
+{"text": "masters in AI programme information", "intent": "programme_info"}
+{"text": "BCA course structure", "intent": "programme_info"}
+{"text": "Which faculty are part of the MCA programme?", "intent": "programme_info"}
+{"text": "is MSc data science available", "intent": "programme_info"}
+{"text": "tell me about the bachelors in computer applications", "intent": "programme_info"}
+{"text": "what are the electives in MCA 5th semester", "intent": "programme_info"}
+{"text": "What is the difference between BCA and BSc computer science?", "intent": "programme_info"}
+{"text": "Are there any events happening today?", "intent": "event_info"}
+{"text": "any seminar today", "intent": "event_info"}
+{"text": "When is the next workshop?", "intent": "event_info"}
+{"text": "Is there a guest lecture this week?", "intent": "event_info"}
+{"text": "hackathon details", "intent": "event_info"}
+{"text": "What events are planned for this month?", "intent": "event_info"}
+{"text": "tech fest date", "intent": "event_info"}
+{"text": "Is there any function in the seminar hall today?", "intent": "event_info"}
+{"text": "when is the AI club meeting", "intent": "event_info"}
+{"text": "any webinar on deep learning this week", "intent": "event_info"}
+{"text": "What's happening on this floor today?", "intent": "event_info"}
+{"text": "Is there an orientation programme for new MCA students?", "intent": "event_info"}
+{"text": "coding competition when", "intent": "event_info"}
+{"text": "parent teacher meeting date", "intent": "event_info"}
+{"text": "Is the industry talk open to all students?", "intent": "event_info"}
+{"text": "upcoming conferences in the department", "intent": "event_info"}
+{"text": "any cultural program this weekend", "intent": "event_info"}
+{"text": "When is the alumni meet?", "intent": "event_info"}
+{"text": "how to register for the workshop", "intent": "event_info"}
+{"text": "Is there a project expo this semester?", "intent": "event_info"}
+{"text": "seminar on blockchain timing", "intent": "event_info"}
+{"text": "any events for first year students", "intent": "event_info"}
+{"text": "Is there a talk by a guest speaker tomorrow?", "intent": "event_info"}
+{"text": "event schedule for this week", "intent": "event_info"}
+{"text": "When is the fest?", "intent": "event_info"}
+{"text": "Is there wifi here?", "intent": "facility_info"}
+{"text": "wifi password", "intent": "facility_info"}
+{"text": "Where can I get drinking water?", "intent": "facility_info"}
+{"text": "Is there a printer on this floor?", "intent": "facility_info"}
+{"text": "xerox facility available", "intent": "facility_info"}
+{"text": "Is the elevator working today?", "intent": "facility_info"}
+{"text": "Is there a canteen nearby?", "intent": "facility_info"}
+{"text": "Where can I charge my laptop?", "intent": "facility_info"}
+{"text": "Can I sit somewhere and wait?", "intent": "facility_info"}
+{"text": "Is there a first aid kit?", "intent": "facility_info"}
+{"text": "parking for visitors", "intent": "facility_info"}
+{"text": "any atm in campus", "intent": "facility_info"}
+{"text": "Is there a waiting area for parents?", "intent": "facility_info"}
+{"text": "drinking water kahan milega", "intent": "facility_info"}
+{"text": "Does this floor have an elevator?", "intent": "facility_info"}
+{"text": "is there a ramp or wheelchair access", "intent": "facility_info"}
+{"text": "what time does the canteen close", "intent": "facility_info"}
+{"text": "can i use the computer here to check mail", "intent": "facility_info"}
+{"text": "Is there a locker facility?", "intent": "facility_info"}
+{"text": "power socket near me", "intent": "facility_info"}
+{"text": "Do you have a lost and found?", "intent": "facility_info"}
+{"text": "what facilities are there on this floor", "intent": "facility_info"}
+{"text": "is ac working in the seminar hall", "intent": "facility_info"}
+{"text": "Is there a library on this floor?", "intent": "facility_info"}
+{"text": "can i get a cup of tea somewhere", "intent": "facility_info"}
+{"text": "What is Dr Nisha Varghese's email?", "intent": "contact_info"}
+{"text": "deepa mam email id", "intent": "contact_info"}
+{"text": "How can I contact Dr Sridevi R?", "intent": "contact_info"}
+{"text": "phone number of cynthia madam", "intent": "contact_info"}
+{"text": "Give me Gobi sir's mail id", "intent": "contact_info"}
+{"text": "email address of somnath sinha", "intent": "contact_info"}
+{"text": "How do I reach Dr Sudhakar by email?", "intent": "contact_info"}
+{"text": "tegil sir contact number", "intent": "contact_info"}
+{"text": "Can you share Chandra ma'am's email?", "intent": "contact_info"}
+{"text": "Kavitha madam mail", "intent": "contact_info"}
+{"text": "What is the official email of Dr Neha Singhal?", "intent": "contact_info"}
+{"text": "helen joy contact", "intent": "contact_info"}
+{"text": "I want to send a mail to Binayak sir, what is his id?", "intent": "contact_info"}
+{"text": "syam mohan sir phone", "intent": "contact_info"}
+{"text": "neetha mam email please", "intent": "contact_info"}
+{"text": "contact details of Dr Shivangi Singh", "intent": "contact_info"}
+{"text": "jobin sir mail id", "intent": "contact_info"}
+{"text": "How can my son contact Ashwini ma'am?", "intent": "contact_info"}
+{"text": "emial of nisha mam", "intent": "contact_info"}
+{"text": "what is the extension number of the department office", "intent": "contact_info"}
+{"text": "department email address", "intent": "contact_info"}
+{"text": "whatsapp number of deepa madam", "intent": "contact_info"}
+{"text": "can i get the mobile number of sridevi mam", "intent": "contact_info"}
+{"text": "Where do I send an email to Dr Cynthia?", "intent": "contact_info"}
+{"text": "gobi r christ university email", "intent": "contact_info"}
+{"text": "hello", "intent": "greeting"}
+{"text": "hi", "intent": "greeting"}
+{"text": "Hi there", "intent": "greeting"}
+{"text": "good morning", "intent": "greeting"}
+{"text": "Good morning sir", "intent": "greeting"}
+{"text": "good afternoon", "intent": "greeting"}
+{"text": "good evening", "intent": "greeting"}
+{"text": "namaste", "intent": "greeting"}
+{"text": "namaskara", "intent": "greeting"}
+{"text": "hey there", "intent": "greeting"}
+{"text": "hello madam", "intent": "greeting"}
+{"text": "Hi robot", "intent": "greeting"}
+{"text": "hey", "intent": "greeting"}
+{"text": "helo", "intent": "greeting"}
+{"text": "hiii", "intent": "greeting"}
+{"text": "Hello! Good morning.", "intent": "greeting"}
+{"text": "hi good morning", "intent": "greeting"}
+{"text": "Good morning everyone", "intent": "greeting"}
+{"text": "namaskaram", "intent": "greeting"}
+{"text": "yo", "intent": "greeting"}
+{"text": "hello hi", "intent": "greeting"}
+{"text": "Greetings", "intent": "greeting"}
+{"text": "hey hello", "intent": "greeting"}
+{"text": "Good morning ma'am", "intent": "greeting"}
+{"text": "hi hello", "intent": "greeting"}
+{"text": "thank you", "intent": "smalltalk_or_thanks"}
+{"text": "thanks", "intent": "smalltalk_or_thanks"}
+{"text": "thanks a lot", "intent": "smalltalk_or_thanks"}
+{"text": "ok thank you", "intent": "smalltalk_or_thanks"}
+{"text": "thank you madam", "intent": "smalltalk_or_thanks"}
+{"text": "thanku", "intent": "smalltalk_or_thanks"}
+{"text": "bye", "intent": "smalltalk_or_thanks"}
+{"text": "ok bye bye", "intent": "smalltalk_or_thanks"}
+{"text": "how are you", "intent": "smalltalk_or_thanks"}
+{"text": "who are you", "intent": "smalltalk_or_thanks"}
+{"text": "what is your name", "intent": "smalltalk_or_thanks"}
+{"text": "are you a human", "intent": "smalltalk_or_thanks"}
+{"text": "you are so smart", "intent": "smalltalk_or_thanks"}
+{"text": "nice", "intent": "smalltalk_or_thanks"}
+{"text": "that was helpful", "intent": "smalltalk_or_thanks"}
+{"text": "good job", "intent": "smalltalk_or_thanks"}
+{"text": "what can you do", "intent": "smalltalk_or_thanks"}
+{"text": "tell me a joke", "intent": "smalltalk_or_thanks"}
+{"text": "ok", "intent": "smalltalk_or_thanks"}
+{"text": "fine, got it", "intent": "smalltalk_or_thanks"}
+{"text": "how old are you", "intent": "smalltalk_or_thanks"}
+{"text": "who made you", "intent": "smalltalk_or_thanks"}
+{"text": "see you", "intent": "smalltalk_or_thanks"}
+{"text": "thank you very much for the help", "intent": "smalltalk_or_thanks"}
+{"text": "great thanks", "intent": "smalltalk_or_thanks"}
+{"text": "I want to talk to a human", "intent": "escalate_to_human"}
+{"text": "can I speak to someone", "intent": "escalate_to_human"}
+{"text": "connect me to the receptionist", "intent": "escalate_to_human"}
+{"text": "I need a real person", "intent": "escalate_to_human"}
+{"text": "talk to staff", "intent": "escalate_to_human"}
+{"text": "Please call the receptionist", "intent": "escalate_to_human"}
+{"text": "I don't want to talk to a machine", "intent": "escalate_to_human"}
+{"text": "is there any person to help me", "intent": "escalate_to_human"}
+{"text": "Can someone from the office come here?", "intent": "escalate_to_human"}
+{"text": "I want to speak to a human being please", "intent": "escalate_to_human"}
+{"text": "get me someone", "intent": "escalate_to_human"}
+{"text": "receptionist please", "intent": "escalate_to_human"}
+{"text": "you are not understanding, call a person", "intent": "escalate_to_human"}
+{"text": "I need help from a staff member", "intent": "escalate_to_human"}
+{"text": "Let me talk to a real human", "intent": "escalate_to_human"}
+{"text": "can a human help me", "intent": "escalate_to_human"}
+{"text": "transfer me to a person", "intent": "escalate_to_human"}
+{"text": "I want to speak with the office staff", "intent": "escalate_to_human"}
+{"text": "please send someone to help", "intent": "escalate_to_human"}
+{"text": "no I need to talk to a person", "intent": "escalate_to_human"}
+{"text": "human", "intent": "escalate_to_human"}
+{"text": "can you call somebody", "intent": "escalate_to_human"}
+{"text": "Is there a staff member I can talk to?", "intent": "escalate_to_human"}
+{"text": "I'd rather talk to a person", "intent": "escalate_to_human"}
+{"text": "speak to someone in charge", "intent": "escalate_to_human"}
+{"text": "What's the weather like today?", "intent": "out_of_scope"}
+{"text": "will it rain today", "intent": "out_of_scope"}
+{"text": "What are the fees for MCA?", "intent": "out_of_scope"}
+{"text": "admission fees for MSc AIML", "intent": "out_of_scope"}
+{"text": "Who won the IPL match?", "intent": "out_of_scope"}
+{"text": "hostel availability for girls", "intent": "out_of_scope"}
+{"text": "What is the placement record of the college?", "intent": "out_of_scope"}
+{"text": "bus route to Electronic City", "intent": "out_of_scope"}
+{"text": "Can you book an auto for me?", "intent": "out_of_scope"}
+{"text": "what is 25 times 4", "intent": "out_of_scope"}
+{"text": "Who is the prime minister of India?", "intent": "out_of_scope"}
+{"text": "Can you write my assignment?", "intent": "out_of_scope"}
+{"text": "exam results date", "intent": "out_of_scope"}
+{"text": "Tell me the latest news", "intent": "out_of_scope"}
+{"text": "how to apply for scholarship", "intent": "out_of_scope"}
+{"text": "What movies are playing nearby?", "intent": "out_of_scope"}
+{"text": "recommend a good restaurant near campus", "intent": "out_of_scope"}
+{"text": "what is the cutoff for admission", "intent": "out_of_scope"}
+{"text": "stock price of infosys", "intent": "out_of_scope"}
+{"text": "translate this to hindi", "intent": "out_of_scope"}
+{"text": "Where is the nearest metro station?", "intent": "out_of_scope"}
+{"text": "how much is the hostel mess fee", "intent": "out_of_scope"}
+{"text": "can you help me with my python homework", "intent": "out_of_scope"}
+{"text": "what is the college's NIRF ranking", "intent": "out_of_scope"}
+{"text": "how do I get a transfer certificate", "intent": "out_of_scope"}
+{"text": "who is dr gobi r", "intent": "find_person"}
+{"text": "who is dr neha singhal and what does she do", "intent": "find_person"}
+{"text": "cynthia mam room number", "intent": "find_person"}
+{"text": "which room is dr sudhakar in", "intent": "find_person"}
+{"text": "dr kavitha r profile", "intent": "find_person"}
+{"text": "is professor tegil john sitting on the 8th floor", "intent": "find_person"}
+{"text": "deepa jose mam room no", "intent": "find_person"}
+{"text": "is kavitha mam in her cabin", "intent": "person_availability"}
+{"text": "will chandra madam be in college tomorrow", "intent": "person_availability"}
+{"text": "is helen mam on leave today", "intent": "person_availability"}
+{"text": "can parents meet binayak sir on saturday", "intent": "person_availability"}
+{"text": "nisha mam available for a meeting at 3", "intent": "person_availability"}
+{"text": "who takes the java lab for bca", "intent": "find_by_subject"}
+{"text": "which faculty knows cryptography", "intent": "find_by_subject"}
+{"text": "who teaches TML", "intent": "find_by_subject"}
+{"text": "faculty teaching the DAA lab", "intent": "find_by_subject"}
+{"text": "guide me to room 874", "intent": "find_room"}
+{"text": "take me to room 876 please", "intent": "find_room"}
+{"text": "directions to the deep learning lab", "intent": "find_room"}
+{"text": "on which floor is the AI lab", "intent": "find_room"}
+{"text": "where is lab number 2", "intent": "find_room"}
+{"text": "I am looking for room 871", "intent": "find_room"}
+{"text": "nearest washroom from here", "intent": "find_room"}
+{"text": "which corridor is room 877 in", "intent": "find_room"}
+{"text": "what is the 5th sem MCA class at 9.45 on Monday", "intent": "schedule_query"}
+{"text": "deepa mam has which classes today", "intent": "schedule_query"}
+{"text": "which lab is running at 11.45 today", "intent": "schedule_query"}
+{"text": "Nisha ma'am's classes on Friday", "intent": "schedule_query"}
+{"text": "timetable of 2nd sem MSc AIML", "intent": "schedule_query"}
+{"text": "what time does the DBMS lab start for BSc", "intent": "schedule_query"}
+{"text": "is there an ML class for MSAIM on Thursday", "intent": "schedule_query"}
+{"text": "Does Sridevi madam teach in the morning on Saturday?", "intent": "schedule_query"}
+{"text": "which department runs MCA", "intent": "programme_info"}
+{"text": "is MCA a two year course", "intent": "programme_info"}
+{"text": "what is taught in the BSc CS stream", "intent": "programme_info"}
+{"text": "is there a coding contest this month", "intent": "event_info"}
+{"text": "any orientation for parents this week", "intent": "event_info"}
+{"text": "what events are coming up", "intent": "event_info"}
+{"text": "is there a vending machine here", "intent": "facility_info"}
+{"text": "where can I fill my water bottle", "intent": "facility_info"}
+{"text": "do you have a microwave or pantry", "intent": "facility_info"}
+{"text": "is there a quiet place to read", "intent": "facility_info"}
+{"text": "is the air conditioning working on this floor", "intent": "facility_info"}
+{"text": "where can I get something to eat", "intent": "facility_info"}
+{"text": "is there a phone charging point", "intent": "facility_info"}
+{"text": "email id of sridevi madam", "intent": "contact_info"}
+{"text": "nisha mam mail id please", "intent": "contact_info"}
+{"text": "sudhakar sir email address", "intent": "contact_info"}
+{"text": "cool", "intent": "smalltalk_or_thanks"}
+{"text": "awesome", "intent": "smalltalk_or_thanks"}
+{"text": "can you sing a song", "intent": "smalltalk_or_thanks"}
+{"text": "do you like your job", "intent": "smalltalk_or_thanks"}
+{"text": "good night", "intent": "smalltalk_or_thanks"}
+{"text": "who is the chief minister of karnataka", "intent": "out_of_scope"}
+{"text": "suggest a good hotel near the college", "intent": "out_of_scope"}
+{"text": "order food for me", "intent": "out_of_scope"}
+{"text": "can you call an uber", "intent": "out_of_scope"}
+{"text": "how far is the airport from here", "intent": "out_of_scope"}
+{"text": "what is the price of petrol today", "intent": "out_of_scope"}
+{"text": "when does the hostel gate close", "intent": "out_of_scope"}
+{"text": "how do i pay the college fees online", "intent": "out_of_scope"}
+{"text": "may i know where dr deepa jose sits", "intent": "find_person"}
+{"text": "sir where is the cabin of professor binayak dutta", "intent": "find_person"}
+{"text": "shivangi singh mam is sitting in which room", "intent": "find_person"}
+{"text": "i am a parent i came to see dr sridevi where should i go", "intent": "find_person"}
+{"text": "tegil john sir cabin which side", "intent": "find_person"}
+{"text": "dr cynthia t office", "intent": "find_person"}
+{"text": "is chandra madam's cabin in this block", "intent": "find_person"}
+{"text": "jobin francis sir is in which building", "intent": "find_person"}
+{"text": "can you help me find dr syam mohan", "intent": "find_person"}
+{"text": "is dr helen joy available to meet right now", "intent": "person_availability"}
+{"text": "when is sridevi mam free this week", "intent": "person_availability"}
+{"text": "can i meet professor nisha after 1 pm", "intent": "person_availability"}
+{"text": "kavitha mam consultation time please", "intent": "person_availability"}
+{"text": "is somnath sir free at 2 30", "intent": "person_availability"}
+{"text": "what are the visiting hours for dr deepa jose", "intent": "person_availability"}
+{"text": "tegil sir meeting time", "intent": "person_availability"}
+{"text": "has chandra madam come to college today", "intent": "person_availability"}
+{"text": "who handles the deep learning course", "intent": "find_by_subject"}
+{"text": "machine learning faculty in MSc AIML", "intent": "find_by_subject"}
+{"text": "who is teaching operating system for 2nd sem MCA", "intent": "find_by_subject"}
+{"text": "i need a faculty who knows wireless sensor networks", "intent": "find_by_subject"}
+{"text": "who is the professor for algorithms", "intent": "find_by_subject"}
+{"text": "data structures lab teacher", "intent": "find_by_subject"}
+{"text": "dbms who takes for 3rd sem bsc", "intent": "find_by_subject"}
+{"text": "which teacher handles the blockchain elective", "intent": "find_by_subject"}
+{"text": "where is the ML lab located", "intent": "find_room"}
+{"text": "how do i reach the MSc AIML class from the lift", "intent": "find_room"}
+{"text": "is the computer lab on this floor", "intent": "find_room"}
+{"text": "room 878 kaise jaana hai", "intent": "find_room"}
+{"text": "toilet where", "intent": "find_room"}
+{"text": "where is the staff room for MCA faculty", "intent": "find_room"}
+{"text": "which way is room 871", "intent": "find_room"}
+{"text": "where is the lab where the 5th sem MSAIM students sit", "intent": "find_room"}
+{"text": "what are nisha mam's classes tomorrow", "intent": "schedule_query"}
+{"text": "which batch is in the lab at 2 pm", "intent": "schedule_query"}
+{"text": "monday timetable of deepa jose madam", "intent": "schedule_query"}
+{"text": "when does 2nd sem MCA have DSA lab", "intent": "schedule_query"}
+{"text": "what is sridevi mam teaching at 9 45", "intent": "schedule_query"}
+{"text": "class schedule for 7th sem BCA on thursday", "intent": "schedule_query"}
+{"text": "is there any lecture in room 874 now", "intent": "schedule_query"}
+{"text": "which subject does gobi sir handle on friday morning", "intent": "schedule_query"}
+{"text": "what are the core subjects in MCA", "intent": "programme_info"}
+{"text": "is MSc AIML a two year programme", "intent": "programme_info"}
+{"text": "how many students are in MCA second year", "intent": "programme_info"}
+{"text": "what courses does this department offer", "intent": "programme_info"}
+{"text": "BSc CM stream subjects", "intent": "programme_info"}
+{"text": "tell me the structure of MSc AI ML", "intent": "programme_info"}
+{"text": "which semester has the ML subject in MSc AIML", "intent": "programme_info"}
+{"text": "is there an integrated programme in computer science here", "intent": "programme_info"}
+{"text": "is any workshop going on in the department now", "intent": "event_info"}
+{"text": "when is the next guest talk on AI", "intent": "event_info"}
+{"text": "are there events for parents this month", "intent": "event_info"}
+{"text": "fest dates please", "intent": "event_info"}
+{"text": "any hackathon coming up", "intent": "event_info"}
+{"text": "is the seminar today open for parents", "intent": "event_info"}
+{"text": "what is the event in the seminar hall tomorrow", "intent": "event_info"}
+{"text": "department day celebration when", "intent": "event_info"}
+{"text": "is there free wifi for visitors", "intent": "facility_info"}
+{"text": "where can i get a photocopy done", "intent": "facility_info"}
+{"text": "can i drink water somewhere here", "intent": "facility_info"}
+{"text": "is there a lift on this side", "intent": "facility_info"}
+{"text": "do you have a waiting room", "intent": "facility_info"}
+{"text": "is there a canteen in this block", "intent": "facility_info"}
+{"text": "wifi kaise connect kare", "intent": "facility_info"}
+{"text": "is there a place to keep my bag", "intent": "facility_info"}
+{"text": "how to contact deepa jose madam", "intent": "contact_info"}
+{"text": "sridevi mam number", "intent": "contact_info"}
+{"text": "i need cynthia madam's official mail", "intent": "contact_info"}
+{"text": "can you tell me the email of dr somnath sinha", "intent": "contact_info"}
+{"text": "chandra mam ka email", "intent": "contact_info"}
+{"text": "how do i send a message to binayak sir", "intent": "contact_info"}
+{"text": "neha singhal contact number please", "intent": "contact_info"}
+{"text": "what is the department landline", "intent": "contact_info"}
+{"text": "hello sir", "intent": "greeting"}
+{"text": "good morning madam", "intent": "greeting"}
+{"text": "hey robot", "intent": "greeting"}
+{"text": "hi hi", "intent": "greeting"}
+{"text": "namaskar", "intent": "greeting"}
+{"text": "thanks for the help", "intent": "smalltalk_or_thanks"}
+{"text": "okay got it thanks", "intent": "smalltalk_or_thanks"}
+{"text": "you are funny", "intent": "smalltalk_or_thanks"}
+{"text": "what are you", "intent": "smalltalk_or_thanks"}
+{"text": "have a nice day", "intent": "smalltalk_or_thanks"}
+{"text": "ok fine", "intent": "smalltalk_or_thanks"}
+{"text": "i want to talk to the office", "intent": "escalate_to_human"}
+{"text": "please get a staff member", "intent": "escalate_to_human"}
+{"text": "is there a human i can talk to", "intent": "escalate_to_human"}
+{"text": "i need to speak to someone urgently", "intent": "escalate_to_human"}
+{"text": "this robot is not working call someone", "intent": "escalate_to_human"}
+{"text": "where can i find a person to help me", "intent": "escalate_to_human"}
+{"text": "how to reach christ university from the railway station", "intent": "out_of_scope"}
+{"text": "score of the india match", "intent": "out_of_scope"}
+{"text": "can you lend me money", "intent": "out_of_scope"}
+{"text": "what is the meaning of life", "intent": "out_of_scope"}
+{"text": "is there any job vacancy in the college", "intent": "out_of_scope"}
+{"text": "what is the syllabus of class 12 maths", "intent": "out_of_scope"}
+{"text": "recommend a pg near the campus", "intent": "out_of_scope"}
+{"text": "how do i get a new id card", "intent": "out_of_scope"}
+{"text": "what subjects does Dr Surabhi Saxena handle", "intent": "schedule_query"}
+{"text": "which courses does Dr Cynthia teach", "intent": "schedule_query"}
+{"text": "what does Shivangi ma'am teach", "intent": "schedule_query"}
+{"text": "list the subjects taught by Dr Syam Mohan", "intent": "schedule_query"}
+{"text": "what all does Dr Neha Singhal take for MCA", "intent": "schedule_query"}
+{"text": "which papers is Dr Limna Das teaching this semester", "intent": "schedule_query"}
+{"text": "what does somnath sir teach", "intent": "schedule_query"}
+{"text": "subjects handled by Dr Smera C", "intent": "schedule_query"}
+{"text": "is Dr Rupali Wagh available on Friday", "intent": "person_availability"}
+{"text": "can I see Dr Surabhi Saxena on Tuesday afternoon", "intent": "person_availability"}
+{"text": "will Dr Vijay Arputharaj be free on Monday", "intent": "person_availability"}
+{"text": "is Manasa ma'am available for a meeting on Thursday", "intent": "person_availability"}
+{"text": "is Dr Logeshwaran free on Saturday morning", "intent": "person_availability"}
