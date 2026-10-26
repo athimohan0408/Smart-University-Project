@@ -117,7 +117,9 @@ def test_gold_set_is_valid_and_covers_routed_intents(entity_kb, settings):
     examples = load_retrieval_examples(settings.paths.retrieval_test)
     assert len(examples) >= 80
     assert [(ex.question, g) for ex in examples for g in ex.gold if g not in ids] == []
-    assert {ex.intent for ex in examples} >= set(ROUTES) | {Intent.CONTACT_INFO}
+    # Facility/event routes need the optional campus sheet; tests/kb/test_campus.py covers them on sample data.
+    campus_only = {Intent.FACILITY_INFO, Intent.EVENT_INFO}
+    assert {ex.intent for ex in examples} >= (set(ROUTES) - campus_only) | {Intent.CONTACT_INFO}
     assert len({ex.question.casefold() for ex in examples}) == len(examples)
 
 

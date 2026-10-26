@@ -13,8 +13,7 @@ Each part of the system lives in its own top-level folder with its own README. A
 | folder | module | what it does | status |
 |---|---|---|---|
 | [`rag-core/`](rag-core/) | Language + RAG core | question -> intent + entities -> retrieval from the faculty knowledge base -> grounded spoken answer -> confidence and hand-over decision. HTTP API: `POST /answer`. | built, tested; **not production-ready yet** (see its README) |
-| `speech/` | Speech | speech-to-text for the visitor's question, text-to-speech for the answer | to do |
-| `dialogue/` | Dialogue / context | follow-ups and pronouns ("where is *her* office?" -> "where is Dr X's office?") before calling rag-core | to do |
+| [`voice-memory/`](voice-memory/) | Voice, memory + knowledge base (Portion 2) | speech-to-text and text-to-speech; conversation memory that rewrites follow-ups ("where is *her* office?" -> "where is Dr X's office?"); the escalation message and "talk to the receptionist" hand-off; response-latency and query-completion metrics. HTTP API for the UI: `POST /turn`. The KB extension (classrooms, labs, facilities, events) is `rag-core/data/raw/campus_info.xlsx`. | built, tested offline; speech models not yet run on the kiosk (see its README) |
 | `kiosk-ui/` | Kiosk UI | screen: shows the answer, the "talk to the receptionist" button, clarification choices | to do |
 | `navigation/` | Navigation / map | turns `room:` ids from rag-core into directions on the floor map | to do |
 | `analytics/` | Analytics dashboard | reads rag-core's query log (`logs/queries.jsonl`) for usage, escalations, response time | to do |
@@ -22,14 +21,16 @@ Each part of the system lives in its own top-level folder with its own README. A
 ## How the modules talk to each other
 
 ```text
-visitor --voice--> speech (STT) --text--> dialogue (resolves "her", "that room")
+visitor --voice--> voice-memory: STT --text--> memory (resolves "her", "that room")
                                               |
                                               v  POST /answer {"question": "...", "context": {...}}
                                           rag-core  --appends--> logs/queries.jsonl --> analytics
                                               |
                                               v  RAGResult: answer, escalate, entities (room:874 ...), sources
-                     kiosk-ui (screen) <------+------> speech (TTS) speaks `answer`
-                                              +------> navigation (room ids -> map route)
+                         voice-memory: hand-off offer if escalate, TTS speaks the answer
+                                              |  POST /turn -> TurnResult (answer, options, room_ids, latency)
+                     kiosk-ui (screen) <------+------> navigation (room ids -> map route)
+                                              +------> logs/turns.jsonl --> analytics (latency, completion rate)
 ```
 
 The exact contract is in [`rag-core/docs/interface.md`](rag-core/docs/interface.md): request and response fields,
@@ -38,6 +39,7 @@ whole team's agreement.
 
 ## Working in this repo
 
+- **Run everything:** see [`RUN.md`](RUN.md).
 - **Clone:** `git clone https://github.com/athimohan0408/Smart-University-Project.git`
 - **Branches:** work on a branch (`git checkout -b <your-name>/<what>`), push it, and open a pull request into
   `main`. Don't push straight to `main` once others depend on it.

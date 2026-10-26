@@ -207,7 +207,16 @@ Facts: one small, self-contained statement each, naming its subject in full.
 | schedule | `faculty:<id>:schedule:<day>` | faculty × Monday..Saturday (empty days included) |
 | room | `room:<room-slug>` | office room (real room numbers only) |
 | programme / course | `programme:<code>` / `course:<code-slug>` | code in the timetable or glossary |
-| event / facility | — | **none yet: no source data.** Add a verified data file + builder first. |
+| facility | `facility:<kind>:<slug>` | verified `Places` row of `data/raw/campus_info.xlsx` (`kb/campus.py`) |
+| event | `event:<yyyy-mm-dd>:<slug>` | verified `Events` row of the same sheet |
+
+Campus sheet rules (`kb/campus.py`): rows without `Verified By` are skipped and listed by `just campus-check`; kinds
+must be lexicon facility/event kinds; hours and times are 24-hour `HH:MM` only (never guessed). With the file missing
+or empty, `build_facts` returns exactly the faculty-only facts (a test checks). The committed file is an empty
+template. Entities: `facility:<kind>` (every place of a kind, linked from the lexicon words only when that kind has
+data), `event:<kind>` and `event:event` (any event); a classroom/lab room number that is no office becomes a
+`room:<slug>` entity routed to the place. Programme facts list the classrooms/labs used by the programme instead of
+"Classroom locations ... are not listed" when the sheet has them.
 
 - **Gaps are facts too**: "Email: not listed", "Consultation hours … are not listed", "no classes are
   listed", "Classroom locations for MSAIM are not listed". The retriever finds them, so the answer
@@ -282,7 +291,8 @@ honorifics, codes that are everyday words). Edit the lexicon, then `just index`.
 Types use the contract enum: a person is `faculty`, a subject `course`, a research area `topic`
 (`topic:<slug>` of the research-area text; the gazetteer lists who has it). Ids: `faculty:<id>`,
 `course:<code-slug>`, `programme:<code-slug>`, `room:<slug>` (= the room fact id), `topic:<slug>`,
-`day:<weekday>`, `time:HH:MM` or `time:HH:MM-HH:MM`. Facility and event mentions are recognised but
+`day:<weekday>`, `time:HH:MM` or `time:HH:MM-HH:MM`, and from the campus sheet `facility:<kind>[:<slug>]`,
+`event:<kind>` / `event:<date>:<slug>`. Facility and event mentions of kinds with no campus data are recognised but
 **unlinked** (`canonical_id` None, lexicon `kind` on the mention) until verified data exists.
 
 Matching, in order, each stage on words the earlier ones left:

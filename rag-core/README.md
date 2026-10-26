@@ -95,7 +95,7 @@ Notes for specific modules:
 |---|---|
 | every tunable (models, thresholds, top-k, LLM provider and model, API host and port) | `config/settings.yaml`. No magic numbers in code. |
 | secrets (API keys) | `.env` only (git-ignored; template in `.env.example`) |
-| source data (read-only) | `data/raw/8th_floor_faculty_final_data.xlsx`, and the problem statement `.docx` |
+| source data (read-only) | `data/raw/8th_floor_faculty_final_data.xlsx`, the problem statement `.docx`, and `data/raw/campus_info.xlsx` (classrooms, labs, facilities, events; filled in by the department, `just campus-check` validates it) |
 | hand-maintained vocab | `data/kb/glossary.yaml` (subject/programme code names), `data/kb/entity_lexicon.yaml` (facility words, honorifics, words around names) |
 | generated (rebuild with `just index` / `just train-intent`) | `data/processed/`, `data/index/`, `data/models/` |
 | gold sets | `data/eval/` (QA, retrieval, entities, intent) |
@@ -159,8 +159,9 @@ tests/                 pytest suite (model-backed tests skip until `just index` 
 
 ## Known gaps
 
-- **No data:** classrooms, labs, events, facilities and phone numbers have no source data. Those questions escalate
-  by design. What to collect from the department is in `reports/data_requests.md`.
+- **No data yet:** classrooms, labs, events and facilities now load from `data/raw/campus_info.xlsx`
+  (`kb/campus.py`), but the committed file is an empty template: no verified rows exist yet, so those questions
+  still escalate by design. Phone numbers have no source at all. What to collect: `reports/data_requests.md`.
 - **Unverified subject names:** no subject or programme name in `data/kb/glossary.yaml` is department-verified yet,
   so answers say the code ("ML").
 - **Intent errors:** the classifier's mistakes are covered by "answer the question asked" rules in the templates,

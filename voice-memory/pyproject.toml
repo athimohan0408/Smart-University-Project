@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voice-memory"
+version = "0.1.0"
+description = "Portion 2 (voice, conversation memory, knowledge base hand-off) of the AI receptionist for Central Block 8th floor, CHRIST University"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "httpx>=0.27",       # keep-alive client for rag-core's POST /answer
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "rapidfuzz>=3.6",    # matching a visitor's pick against clarification options
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+# Speech backends are optional and pluggable (config/settings.yaml: stt.backend, tts.backend).
+stt = ["faster-whisper>=1.0"]          # offline Whisper; downloads the model from Hugging Face on first use
+tts = ["piper-tts>=1.2"]               # offline neural voice; needs a voice .onnx file (see README)
+tts-basic = ["pyttsx3>=2.90"]          # uses the OS voice (espeak / SAPI5 / NSSpeech)
+audio = ["sounddevice>=0.4", "soundfile>=0.12"]   # microphone + speaker on the kiosk
+dev = ["pytest>=8", "python-multipart>=0.0.9"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "ragcore: needs rag-core installed with its index and intent model built (skipped otherwise)",
+]

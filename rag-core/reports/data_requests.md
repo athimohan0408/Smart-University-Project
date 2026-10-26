@@ -5,13 +5,18 @@ These gaps can't be fixed in code: the assistant escalates instead of guessing (
 item says what to collect, in what form, and which questions it unlocks. Put verified files under `data/raw/` (or
 edit `data/kb/glossary.yaml` for names), then `just index` (or `POST /reload-kb`).
 
+> **Where to put classrooms, labs, facilities and events:** `data/raw/campus_info.xlsx` (sheets `Places` and
+> `Events`; the column guide is in its `README` sheet). Fill it in, then `just campus-check` and `just index`.
+> Rows without `Verified By` are not loaded. No retraining is needed.
+
 ## 1. Classrooms and labs (highest impact)
 
 - **What:** the room for each class: programme + semester + section (+ stream for BSc) + subject -> room number,
   block, floor. The timetable lines have no room at all ("Timetable lines have no room", CLAUDE.md).
 - **Also:** the labs on the floor (name, room, which classes use them).
-- **Form:** a sheet with columns `programme, semester, section, stream, subject_code, day, start, end, room, block, floor`
-  (one row per timetable line), or a simpler `programme, semester, section -> home classroom` table.
+- **Form:** one `Places` row per classroom or lab in `data/raw/campus_info.xlsx` (kind `classroom` or `lab`, with the
+  programme codes that use it in `Programmes`). A per-timetable-line room table (`programme, semester, section,
+  subject_code, day, start, end, room`) would still be needed for "where is the ML class right now".
 - **Unlocks:** "Where is the MSc AI and ML classroom?" (the problem statement's own example), "Where is the ML class?",
   "Where is the AI lab?". 6 QA questions today, all escalated.
 
@@ -53,8 +58,8 @@ The assistant states both values today and lowers its confidence.
 
 | category | what to collect | QA questions today |
 |---|---|---|
-| Events (seminars, workshops, guest lectures, orientation) | a maintained list: title, date, time, venue room, audience | 5, all escalated |
-| Facilities (washroom, drinking water, wifi, printing, lift, staff room, waiting area) | location (room/near which room) and status/hours; wifi: what visitors may be told | 6, all escalated |
+| Events (seminars, workshops, guest lectures, orientation) | `Events` sheet of `campus_info.xlsx`: title, kind, date, time, venue, audience | 5, all escalated |
+| Facilities (washroom, drinking water, wifi, printing, lift, staff room, waiting area) | `Places` sheet of `campus_info.xlsx`: location, directions, hours; wifi: what visitors may be told (Notes) | 6, all escalated |
 | Department office / HOD | who the HOD is, the department office room, its hours and official contact | "Who is the HOD of computer science?" |
 
 ## 6. Policy decisions
