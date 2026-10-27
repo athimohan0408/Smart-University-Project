@@ -53,6 +53,7 @@ class PathsSettings(_Section):
     raw_faculty_xlsx: ProjectPath
     glossary: ProjectPath
     entity_lexicon: ProjectPath
+    campus_xlsx: ProjectPath
     faculty_json: ProjectPath
     subject_codes_csv: ProjectPath
     data_quality_report: ProjectPath

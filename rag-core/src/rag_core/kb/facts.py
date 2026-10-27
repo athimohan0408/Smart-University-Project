@@ -16,12 +16,16 @@ from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from rag_core.kb.glossary import Glossary
 from rag_core.kb.models import TIMETABLE_DAYS, ClassSlot, Faculty, FacultyKB
 from rag_core.kb.parsing import dedupe, is_room_number, slugify
+
+if TYPE_CHECKING:
+    from rag_core.kb.campus import CampusKB, Place
 
 
 class FactCategory(StrEnum):
@@ -37,7 +41,7 @@ class FactCategory(StrEnum):
     FACILITY = "facility"
 
 
-# Categories with no source data yet. Facts for them need a verified data file first.
+# Categories whose source is optional: they come only from the verified campus sheet (kb/campus.py).
 CATEGORIES_WITHOUT_SOURCE = frozenset({FactCategory.EVENT, FactCategory.FACILITY})
 
 
@@ -384,7 +388,18 @@ def _room_facts(faculty: Sequence[Faculty], ctx: FactContext, source: str) -> li
     return facts
 
 
-def _programme_facts(faculty: Sequence[Faculty], ctx: FactContext, describe: _Describer, source: str) -> list[Fact]:
+def _places_sentence(code: str, places: Sequence[Place]) -> str:
+    listed = []
+    for p in places:
+        where = ", ".join(x for x in (f"room {p.room}" if p.room else None, p.block, p.floor) if x)
+        listed.append(f"{p.name} ({where})")
+    return f" Classrooms and labs used by {code}: {'; '.join(listed)}."
+
+
+def _programme_facts(
+    faculty: Sequence[Faculty], ctx: FactContext, describe: _Describer, source: str,
+    places: dict[str, list[Place]] | None = None,
+) -> list[Fact]:
     slots_by_prog: dict[str, list[tuple[Faculty, ClassSlot]]] = defaultdict(list)
     for fac in faculty:
         for slot in fac.timetable:
@@ -407,7 +422,10 @@ def _programme_facts(faculty: Sequence[Faculty], ctx: FactContext, describe: _De
             text += f" Subject codes in the {code} timetable: {', '.join(subjects)}."
         else:
             text += f" No {code} classes appear in the timetable."
-        text += f" Classroom locations for {code} are not listed."
+        if places and places.get(code):
+            text += _places_sentence(code, places[code])
+        else:
+            text += f" Classroom locations for {code} are not listed."
         facts.append(
             Fact(
                 fact_id=f"programme:{slugify(code)}",
@@ -461,8 +479,14 @@ def _course_facts(faculty: Sequence[Faculty], ctx: FactContext, describe: _Descr
 # --------------------------------------------------------------------------- entry point
 
 
-def build_facts(kb: FacultyKB, ctx: FactContext) -> list[Fact]:
-    """All facts in a fixed order; fact ids are derived only from the data, so rebuilds match."""
+def build_facts(kb: FacultyKB, ctx: FactContext, campus: CampusKB | None = None) -> list[Fact]:
+    """All facts in a fixed order; fact ids are derived only from the data, so rebuilds match.
+
+    ``campus``: verified places and events (kb/campus.py). Without it, or with an empty sheet, the
+    facts are exactly the faculty-only ones.
+    """
+    from rag_core.kb.campus import build_campus_facts, programme_places
+
     source = kb.source
     describe = _Describer(ctx)
     by_short_name = {f.short_name: f for f in kb.faculty if f.short_name}
@@ -480,8 +504,10 @@ def build_facts(kb: FacultyKB, ctx: FactContext) -> list[Fact]:
         facts.extend(_teaching_facts(fac, by_short_name, ctx, describe, source))
         facts.extend(_schedule_facts(fac, source))
     facts.extend(_room_facts(kb.faculty, ctx, source))
-    facts.extend(_programme_facts(kb.faculty, ctx, describe, source))
+    facts.extend(_programme_facts(kb.faculty, ctx, describe, source, programme_places(campus)))
     facts.extend(_course_facts(kb.faculty, ctx, describe, source))
+    if campus is not None:
+        facts.extend(build_campus_facts(campus, ctx.home_block, ctx.home_floor))
 
     ids = [f.fact_id for f in facts]
     if dupes := sorted({i for i in ids if ids.count(i) > 1}):

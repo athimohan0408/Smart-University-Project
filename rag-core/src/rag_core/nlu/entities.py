@@ -298,10 +298,18 @@ class EntityExtractor:
                 else:
                     self._index(alias.text, hit)
 
+        # A kind with verified campus data has a kind entry ("facility:washroom"): its words link to it.
+        # Kinds without data stay unlinked, so those questions still escalate. A word that is also the
+        # name of one specific place ("computer lab") means that place, not the whole kind.
+        known = {e.canonical_id for e in gazetteer.entries}
         for type_, kinds in ((EntityType.FACILITY, lexicon.facilities), (EntityType.EVENT, lexicon.events)):
             for kind, phrases in kinds.items():
+                kind_id = f"{type_.value}:{kind}" if f"{type_.value}:{kind}" in known else None
                 for phrase in phrases:
-                    self._index(phrase, _Hit(type_, None, kind, phrase, kind=kind), fuzzy=False)
+                    if kind_id and any(h.type == type_ and h.canonical_id for h in self._exact.get(self._content_norm(phrase), [])):
+                        continue
+                    name = kind.replace("_", " ")
+                    self._index(phrase, _Hit(type_, kind_id, name, phrase, kind=kind), fuzzy=False)
 
         # A short code that is also another gazetteer word (course code RM) needs an honorific to mean a person.
         code_words = set(self._exact) | {h.alias.casefold() for _, h in self._case_codes}
@@ -672,6 +680,7 @@ class EntityExtractor:
         mention = EntityMention(
             type=type_, text=state.text[start:end], start=start, end=end, method=method,
             score=max(c.score for c in candidates), candidates=candidates, ambiguous=len(candidates) > 1,
+            kind=kept[0][0].kind,
         )
         state.add(mention, list(range(first, last + 1)), consume=idxs)
 

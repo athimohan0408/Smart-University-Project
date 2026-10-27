@@ -1,0 +1,120 @@
+/* Shared by the kiosk and the dashboard.
+   Look: campus wayfinding signage. Flat CHRIST navy (#26479A, from the logo) and gold (#C5A25A) on warm paper,
+   hairline rules instead of shadows, square-ish corners, a scholarly serif for headings (Source Serif 4) and a
+   public-signage sans for everything else (Public Sans). Fonts fall back to Georgia / Segoe UI when offline. */
+:root {
+  color-scheme: light;
+  --navy: #26479a;
+  --navy-deep: #182f6b;
+  --navy-ink: #13254f;
+  --gold: #c5a25a;
+  --gold-deep: #8f6f2c;
+  --gold-pale: #f3ead6;
+  --paper: #f7f4ee;
+  --paper-2: #efeae0;
+  --surface: #fffdf9;
+  --ink: #1a2036;
+  --ink-2: #4a5168;
+  --rule: #d9d2c3;
+  --rule-strong: #b8ae98;
+  --here: #c8102e;           /* wayfinding red: "you are here" */
+  --ok: #2c6e49;
+  --warn: #8a5a00;
+  --warn-pale: #f6ead0;
+  --bad: #a3231a;
+  --radius: 4px;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Public Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+
+  /* names the dashboard and map code already use */
+  --bg: var(--paper);
+  --text: var(--ink);
+  --muted: var(--ink-2);
+  --line: var(--rule);
+  --accent: var(--navy);
+  --brand: var(--navy);
+  --route: var(--gold);
+  --font: var(--sans);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; } /* the `hidden` attribute wins over any display: flex/grid below */
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.5;
+  -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { margin: 0; line-height: 1.15; font-family: var(--serif); font-weight: 600; letter-spacing: -.01em; }
+p { margin: 0; }
+
+button { font: inherit; cursor: pointer; border-radius: var(--radius); border: 1px solid transparent; padding: .6em 1.1em;
+  background: none; color: inherit; transition: background-color .12s, color .12s, border-color .12s; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+button:disabled { opacity: .5; cursor: default; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .6em; font-weight: 600; letter-spacing: .01em; }
+.btn svg { width: 1.2em; height: 1.2em; fill: currentColor; }
+.btn-navy { background: var(--navy); color: #fff; }
+.btn-navy:hover:not(:disabled) { background: var(--navy-deep); }
+.btn-gold { background: var(--gold); color: var(--navy-ink); }
+.btn-gold:hover:not(:disabled) { background: #d4b26b; }
+.btn-line { border-color: var(--navy); color: var(--navy); }
+.btn-line:hover:not(:disabled) { background: var(--navy); color: #fff; }
+.btn-line-light { border-color: rgba(255, 255, 255, .55); color: #fff; }
+.btn-line-light:hover:not(:disabled) { background: #fff; color: var(--navy); }
+.ghost { color: var(--ink-2); border-color: var(--rule-strong); }
+.ghost:hover:not(:disabled) { color: var(--ink); border-color: var(--ink); }
+.secondary { color: var(--navy); border-color: var(--navy); font-weight: 600; }
+.secondary:hover:not(:disabled) { background: var(--navy); color: #fff; }
+.primary { background: var(--navy); color: #fff; font-weight: 600; }
+
+.kicker, .eyebrow { font-family: var(--sans); font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--gold-deep); }
+.badge { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: .35em .7em;
+  border-radius: 2px; white-space: nowrap; }
+.badge.warn { background: var(--warn-pale); color: var(--warn); }
+.pane { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px 24px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px 22px; }
+
+/* masthead: white, so the logo reads; a gold double rule like the logo's */
+.masthead { display: flex; align-items: center; gap: 24px; padding: 14px 32px; background: #fff;
+  border-bottom: 1px solid var(--gold); box-shadow: 0 3px 0 0 #fff, 0 4px 0 0 var(--gold); position: relative; z-index: 1; }
+.masthead .logo { height: 58px; width: auto; display: block; }
+.masthead-title { border-left: 1px solid var(--rule); padding-left: 24px; min-width: 0; }
+.masthead-title h1 { color: var(--navy); font-size: 1.7rem; }
+.masthead-title .where { color: var(--ink-2); font-size: .9rem; margin-top: 2px; }
+.masthead-right { margin-left: auto; display: flex; align-items: center; gap: 22px; }
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: .8rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-2); }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--rule-strong); }
+.status.ok { color: var(--ok); }
+.status.ok i { background: var(--ok); }
+.status.bad { color: var(--bad); }
+.status.bad i { background: var(--bad); }
+.clock { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; color: var(--ink-2); font-size: .8rem;
+  border-left: 1px solid var(--rule); padding-left: 22px; }
+.clock strong { color: var(--navy); font: 600 1.6rem/1.05 var(--serif); font-variant-numeric: tabular-nums lining-nums; }
+@media (max-width: 900px) {
+  .masthead { flex-wrap: wrap; gap: 10px 16px; padding: 12px 16px; }
+  .masthead .logo { height: 40px; }
+  .masthead-title { border-left: 0; padding-left: 0; flex-basis: 100%; order: 3; }
+  .masthead-title h1 { font-size: 1.3rem; }
+  .clock { border-left: 0; padding-left: 0; }
+  .clock span { display: none; }
+}
+
+/* floor map: drawn like a wayfinding board (navy ground, white rooms, gold route, red "you are here") */
+.map { background: var(--navy-deep); border-radius: var(--radius); padding: 12px; }
+.map svg { width: 100%; height: auto; display: block; }
+.map .corridor { fill: rgba(255, 255, 255, .08); }
+.map .room { fill: transparent; stroke: rgba(255, 255, 255, .7); stroke-width: 2; }
+.map .room.hi { fill: var(--gold); stroke: var(--gold); }
+.map .reception { fill: rgba(255, 255, 255, .14); stroke: rgba(255, 255, 255, .7); stroke-width: 2; stroke-dasharray: 5 4; }
+.map .label { fill: #fff; font: 600 21px var(--sans); text-anchor: middle; dominant-baseline: middle; pointer-events: none;
+  font-variant-numeric: tabular-nums; }
+.map .room.hi + .label { fill: var(--navy-ink); }
+.map .label.small { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; fill: rgba(255, 255, 255, .85); }
+.map .route { fill: none; stroke: var(--gold); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 2 14; animation: march 1.1s linear infinite; }
+.map .you { fill: var(--here); stroke: #fff; stroke-width: 4; }
+.map .dest { fill: var(--gold); stroke: #fff; stroke-width: 4; }
+@keyframes march { to { stroke-dashoffset: -32; } }
+@media (prefers-reduced-motion: reduce) { .map .route { animation: none; } }

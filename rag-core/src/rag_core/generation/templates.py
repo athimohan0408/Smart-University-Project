@@ -186,6 +186,24 @@ _NOT_IN_KB_TOPIC = re.compile(
     r"transport|bus|results?|duration|seats|intake)\b|\bhow (many (semesters?|years?)|long)\b", re.IGNORECASE)
 
 
+# kb/campus.py sentence shapes (a test builds sample campus facts and checks they parse).
+_CAMPUS_CATEGORIES = frozenset({"facility", "event"})
+_CAMPUS_INTENTS = frozenset({Intent.FIND_ROOM, Intent.FACILITY_INFO, Intent.EVENT_INFO})
+_PLACE = re.compile(r"(?P<name>.+?) \([a-z ]+\) is in (?P<where>.+?) \((?P<here>on this floor|not on this floor)\)\.")
+_DIRECTIONS = re.compile(r" Directions: (.*?)\.(?= Open hours| Opening hours)")
+_OPEN_HOURS = re.compile(r" Open hours, 24-hour time: (.*?)\.(?: |$)")
+_RANGE24 = re.compile(r"(\d{1,2}:\d{2})-(\d{1,2}:\d{2})")
+_NOTE = re.compile(r" Note: (.*?)\.$")
+_OPEN_CUE = re.compile(r"\b(open|opens|close|closes|closed|hours?|timings?|time|when|until|till)\b", re.IGNORECASE)
+_EVENT = re.compile(
+    r"Event: (?P<title>.+?) \((?P<kind>[^()]+)\) on (?P<when>\w+, \d{1,2} \w+ \d{4})"
+    r"(?:, (?P<start>\d{1,2}:\d{2})-(?P<end>\d{1,2}:\d{2}) \(24-hour time\)|, starting (?P<start2>\d{1,2}:\d{2}) \(24-hour time\))?"
+    r"(?:, at (?P<venue>.+?)\.(?: |$)|\. The venue is not listed\.)"
+)
+_ORGANISER = re.compile(r" Organised by: (.*?)\.(?: |$)")
+_AUDIENCE = re.compile(r" For: (.*?)\.(?: |$)")
+
+
 class FactComposer:
     """Deterministic spoken answers from structured facts. ``compose`` returns None when unsure."""
 
@@ -202,7 +220,8 @@ class FactComposer:
         facts: Sequence[RetrievedFact],
         now: datetime,
     ) -> AnswerDraft | None:
-        if intent in NO_DATA:
+        campus = [f for f in facts if f.via == "structured" and f.metadata.get("category") in _CAMPUS_CATEGORIES]
+        if intent in NO_DATA and not campus:
             return self._unanswerable(NO_DATA[intent])
         by_id = {f.fact_id: f for f in facts}
         linked: dict[EntityType, list[str]] = defaultdict(list)
@@ -249,6 +268,11 @@ class FactComposer:
             return self._unanswerable(
                 "I'm sorry, I can't share personal details about staff. Please ask the receptionist at the desk.")
 
+        if campus and intent in _CAMPUS_INTENTS and not linked.get(EntityType.FACULTY):
+            office_rooms = [f for f in facts if f.via == "structured" and f.metadata.get("category") == "room"]
+            if not office_rooms:
+                return self._campus(question, intent, mentions, campus, now)
+
         if unknown_rooms and linked.get(EntityType.FACULTY) and intent in (Intent.FIND_ROOM, Intent.FIND_PERSON):
             # "I heard Dr X moved to room 900": give the recorded room, never confirm the visitor's.
             draft = self._find_person(question, linked, by_id, mentions, now)
@@ -274,6 +298,105 @@ class FactComposer:
         if draft is not None and unknown_note and draft.answerable:
             draft.answer += unknown_note
         return draft
+
+    # -- campus places and events (kb/campus.py sentence shapes)
+
+    def _campus(
+        self, question: str, intent: Intent, mentions: Sequence[EntityMention], facts: Sequence[RetrievedFact], now: datetime,
+    ) -> AnswerDraft | None:
+        events = [f for f in facts if f.metadata.get("category") == "event"]
+        places = [f for f in facts if f.metadata.get("category") == "facility"]
+        if intent == Intent.EVENT_INFO and events:
+            return self._events(question, mentions, events, now)
+        if places:
+            return self._places(question, places)
+        return self._events(question, mentions, events, now) if events else None
+
+    def _places(self, question: str, places: Sequence[RetrievedFact]) -> AnswerDraft:
+        here = [f for f in places if "(on this floor)." in f.text]
+        ordered = [*here, *(f for f in places if f not in here)]
+        limit = self._cfg.max_names_spoken
+        shown = ordered[:limit]
+        wants_hours = bool(_OPEN_CUE.search(question))
+        sentences = []
+        for n, fact in enumerate(shown):
+            m = _PLACE.match(fact.text)
+            if not m:
+                continue
+            where = m["where"] + (", here on this floor" if m["here"] == "on this floor" else ", which is not on this floor")
+            sentences.append(f"{m['name']} is in {where}.")
+            if len(shown) == 1 and (d := _DIRECTIONS.search(fact.text)):
+                sentences.append(f"{d[1]}.")
+            if wants_hours:
+                if h := _OPEN_HOURS.search(fact.text):
+                    ranges = [spoken_range(*r) for r in _RANGE24.findall(h[1])]
+                    sentences.append(f"It is open {and_join(ranges)}.")
+                else:
+                    sentences.append(f"Opening hours for {m['name']} are not listed.")
+            if n == 0 and len(shown) == 1 and (note := _NOTE.search(fact.text)):
+                sentences.append(f"{note[1]}.")
+        if not sentences:
+            return self._unanswerable(self._cfg.safe_message)
+        if len(ordered) > limit:
+            rest = len(ordered) - limit
+            sentences.append(f"There {'is' if rest == 1 else 'are'} {rest} more listed; please ask at the desk for the others.")
+        return self._draft(" ".join(sentences), [f.fact_id for f in shown])
+
+    def _events(
+        self, question: str, mentions: Sequence[EntityMention], events: Sequence[RetrievedFact], now: datetime,
+    ) -> AnswerDraft:
+        from datetime import date, timedelta
+
+        def when_of(fact: RetrievedFact) -> date | None:
+            part = fact.fact_id.split(":")
+            try:
+                return date.fromisoformat(part[1]) if len(part) == 3 else None
+            except ValueError:
+                return None
+
+        today = now.date()
+        target, label = None, None
+        if re.search(r"\btomorrow\b", question, re.IGNORECASE):
+            target, label = today + timedelta(days=1), "tomorrow"
+        elif re.search(r"\b(today|tonight|now)\b", question, re.IGNORECASE):
+            target, label = today, "today"
+        elif day := self._day(mentions):
+            offset = (_WEEK.index(day) - today.weekday()) % 7
+            target, label = today + timedelta(days=offset), f"on {day}"
+        dated = sorted(((when_of(f), f) for f in events), key=lambda p: (p[0] or date.max, p[1].fact_id))
+        if target is not None:
+            chosen = [f for d, f in dated if d == target]
+        else:
+            chosen = [f for d, f in dated if d is not None and d >= today]
+        if not chosen:
+            when = label or "coming up"
+            return self._unanswerable(
+                f"I'm sorry, I don't have any events listed {when}. Please check with the receptionist at the desk.")
+        limit = self._cfg.max_names_spoken
+        shown = chosen[:limit]
+        spoken = [self._event_sentence(f, detail=len(shown) == 1) for f in shown]
+        answer = " ".join(s for s in spoken if s)
+        if len(chosen) > limit:
+            answer += f" There are {len(chosen) - limit} more events listed; please ask at the desk for the others."
+        return self._draft(answer, [f.fact_id for f in shown])
+
+    @staticmethod
+    def _event_sentence(fact: RetrievedFact, detail: bool) -> str:
+        m = _EVENT.match(fact.text)
+        if not m:
+            return ""
+        when = re.sub(r" \d{4}$", "", m["when"])  # "Friday, 6 November 2026" -> "Friday, 6 November"
+        out = f"{m['title']} ({m['kind']}) is on {when}"
+        if m["start"] and m["end"]:
+            out += f", from {spoken_range(m['start'], m['end'])}"
+        elif m["start2"]:
+            out += f", starting at {spoken_time(m['start2'])}"
+        out += f", at {m['venue']}." if m["venue"] else ". The venue is not listed."
+        if detail:
+            for label, cue in (("Organised by", _ORGANISER), ("For", _AUDIENCE)):
+                if found := cue.search(fact.text):
+                    out += f" {label} {found[1]}."
+        return out
 
     # -- helpers
 

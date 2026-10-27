@@ -39,6 +39,7 @@ from pydantic import BaseModel, Field, NonNegativeInt
 
 from rag_core.config import RetrievalSettings, Settings, get_settings
 from rag_core.contracts import Entity, EntityType, Intent, Probability, RetrievalVia, RetrievedFact
+from rag_core.kb.campus import event_kind, kind_of
 from rag_core.kb.facts import Fact, FactCategory
 from rag_core.kb.parsing import slugify
 from rag_core.nlu.entities import EntityMention
@@ -81,8 +82,10 @@ _C = FactCategory
 _FAC, _ROOM, _COURSE, _PROG, _TOPIC, _DAY = (
     EntityType.FACULTY, EntityType.ROOM, EntityType.COURSE, EntityType.PROGRAMME, EntityType.TOPIC, EntityType.DAY,
 )
+_PLACE, _EVENT = EntityType.FACILITY, EntityType.EVENT
 
-# Intents without routes (greetings, events, facilities, out of scope) get no structured hits.
+# Intents without routes (greetings, out of scope) get no structured hits. Facility and event routes
+# only fire when the campus sheet (kb/campus.py) has verified data, since only then do those words link.
 ROUTES: dict[Intent, tuple[Route, ...]] = {
     Intent.FIND_PERSON: (
         _route(_C.FACULTY_LOCATION, _FAC),
@@ -116,6 +119,10 @@ ROUTES: dict[Intent, tuple[Route, ...]] = {
     Intent.FIND_ROOM: (
         _route(_C.ROOM, _ROOM),
         _route(_C.FACULTY_LOCATION, _FAC),
+        _route(_C.FACILITY, _ROOM, unless=[_FAC]),  # "where is room 806" when 806 is a lab, not an office
+        _route(_C.FACILITY, _PLACE, unless=[_ROOM, _FAC]),  # "where is the washroom / the AI lab"
+        _route(_C.FACILITY, _PLACE, _PROG, unless=[_ROOM, _FAC]),  # "where is the MSc AIML classroom"
+        _route(_C.FACILITY, _PROG, unless=[_ROOM, _FAC, _PLACE], tier=1),  # "where do MSAIM classes happen"
         # "where is the MSc AIML classroom / the ML class": these facts say the location isn't listed
         _route(_C.PROGRAMME, _PROG, unless=[_ROOM, _FAC]),
         _route(_C.COURSE, _COURSE, unless=[_ROOM, _FAC]),
@@ -134,6 +141,14 @@ ROUTES: dict[Intent, tuple[Route, ...]] = {
     Intent.PROGRAMME_INFO: (
         _route(_C.PROGRAMME, _PROG),
         _route(_C.COURSE, _COURSE),
+    ),
+    Intent.FACILITY_INFO: (
+        _route(_C.FACILITY, _PLACE),  # "is there wifi", "where can I print"
+    ),
+    Intent.EVENT_INFO: (
+        _route(_C.EVENT, _EVENT, _DAY),  # "any seminar on Friday", "events today": that day first
+        _route(_C.EVENT, _EVENT, tier=1),
+        _route(_C.FACILITY, _PLACE, unless=[_EVENT], tier=1),  # "what is happening in the seminar hall"
     ),
 }
 
@@ -196,6 +211,10 @@ class FactCatalog:
                 ids |= {offices[(x, f.room)] for x in faculty if (x, f.room) in offices}
             if f.category == FactCategory.FACULTY_PROFILE:
                 ids |= {t for x in faculty for t in topics_of[x]}
+            if f.category == FactCategory.FACILITY:  # the place itself, its kind ("facility:washroom"), its room
+                ids |= {f.fact_id, f"facility:{kind_of(f.fact_id)}"} | ({f"room:{slugify(f.room)}"} if f.room else set())
+            elif f.category == FactCategory.EVENT:  # the event, its kind, and "event:event" for any event
+                ids |= {f.fact_id, "event:event"} | ({f"event:{k}"} if (k := event_kind(f)) else set())
             for eid in ids:
                 self._by_entity[eid].add(f.fact_id)
 

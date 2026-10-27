@@ -31,6 +31,7 @@ from rag_core.retrieval.retriever import RetrievalSignals
 from rag_core.scoring.grounding_check import GroundingResult
 
 KB_TYPES = frozenset({EntityType.FACULTY, EntityType.ROOM, EntityType.COURSE, EntityType.PROGRAMME, EntityType.TOPIC})
+CAMPUS_TYPES = frozenset({EntityType.FACILITY, EntityType.EVENT})
 # Intents answered from facts about a specific KB entity: no linked entity => low confidence.
 NEEDS_ENTITY = frozenset({
     Intent.FIND_PERSON, Intent.PERSON_AVAILABILITY, Intent.CONTACT_INFO, Intent.SCHEDULE_QUERY,
@@ -57,7 +58,8 @@ class ConfidenceFeatures(BaseModel):
 
 def entity_score(intent: Intent, mentions: Sequence[EntityMention]) -> float:
     """Min link score over the KB entities in the question; an unlinked person/room counts 0."""
-    kb = [m for m in mentions if m.type in KB_TYPES]
+    # A place or event counts once it links to verified campus data; an unlinked "washroom" changes nothing.
+    kb = [m for m in mentions if m.type in KB_TYPES or (m.type in CAMPUS_TYPES and m.candidates)]
     if not kb:
         return 0.0 if intent in NEEDS_ENTITY else 1.0
     return min(m.score if m.candidates else 0.0 for m in kb)

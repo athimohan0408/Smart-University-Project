@@ -7,6 +7,9 @@ paths:
   raw_faculty_xlsx: data/raw/8th_floor_faculty_final_data.xlsx
   glossary: data/kb/glossary.yaml           # hand-maintained + versioned; ingest never writes it
   entity_lexicon: data/kb/entity_lexicon.yaml  # facility/event words, honorifics (hand-maintained)
+  # Verified classrooms, labs, facilities and events (kb/campus.py). Optional: missing or empty => those
+  # questions escalate. Edit, then `just index` or POST /reload-kb; no retraining needed.
+  campus_xlsx: data/raw/campus_info.xlsx
   faculty_json: data/processed/faculty.json                 # outputs of `just ingest`
   subject_codes_csv: data/processed/subject_codes_found.csv
   data_quality_report: data/processed/data_quality_report.md
@@ -73,12 +76,12 @@ retrieval:
   # Fact categories the semantic stage may return, per intent: a Chroma `where` filter, applied to
   # BM25 as well. Structured routing is not filtered. An intent missing here searches every
   # category. An empty list skips semantic search: nothing in the KB can answer that intent.
-  # Events and facilities have no source data yet, so their categories hold no facts.
+  # Events and facilities come only from the optional campus sheet; without it their categories hold no facts.
   intent_categories:
     find_person: [faculty_location, faculty_profile, room]
     person_availability: [faculty_consultation, schedule, faculty_location]
     find_by_subject: [course, teaching, faculty_profile, programme]
-    find_room: [room, faculty_location, programme, course]
+    find_room: [room, faculty_location, programme, course, facility]
     schedule_query: [schedule, teaching, course]
     programme_info: [programme, course]
     contact_info: [faculty_profile]

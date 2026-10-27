@@ -1,0 +1,75 @@
+# Every tunable for voice-memory (Portion 2). Secrets go in .env, never here.
+# Relative paths resolve against this module's folder (voice-memory/). Override the file with VM_SETTINGS_PATH.
+
+rag:
+  # http: call rag-core's POST /answer (run `just serve` in rag-core). inprocess: import rag_core directly
+  # (same Python environment, no network hop; about 200 ms faster per turn on Windows).
+  mode: http
+  url: http://127.0.0.1:8000
+  timeout_s: 10
+
+kb:
+  # The knowledge base itself is built by rag-core (faculty sheet + data/raw/campus_info.xlsx).
+  # Memory reads its generated files for names and genders (for "her office" / "his cabin").
+  faculty_json: ../rag-core/data/processed/faculty.json
+  gazetteer: ../rag-core/data/index/gazetteer.json   # optional: names for rooms, courses, places, events
+
+memory:
+  session_idle_s: 120          # a new visitor after this much silence: forget the conversation
+  max_turns: 30                # hard cap per session
+  # rag-core's context.last_entities fills a missing entity from earlier turns. Off: memory rewrites the
+  # question instead, and an unrelated follow-up ("where is the washroom?") must never inherit a person.
+  send_last_entities: false
+  send_prior_entities: true    # lets rag-core break name ties ("Dr George") with people already discussed
+  max_prior_entities: 5
+  option_match_min: 80         # rapidfuzz score to accept a spoken pick ("Jossy") among clarification options
+
+handoff:
+  # Offered on screen and by voice whenever rag-core escalates.
+  option_label: "Talk to the receptionist"
+  ask_again_label: "Ask another question"
+  offer_prompt: "Would you like me to call the receptionist for you?"
+  confirmed_message: "I've let the receptionist know. Please wait here, or walk over to the front desk, and they will help you."
+  declined_message: "No problem. You can ask me something else."
+  unavailable_message: "I'm sorry, I'm having trouble looking that up right now. Please check with the receptionist at the desk."
+  tickets: logs/handoffs.jsonl  # one JSON line per hand-off for the desk and for analytics
+  webhook_timeout_s: 3
+
+speech:
+  language: en
+  rooms_as_digits: true        # TTS says "room 8 7 4" (clearer on a noisy floor than "eight hundred seventy-four")
+  spell_codes: true            # "MSAIM" -> "M S A I M"
+
+stt:
+  backend: faster_whisper      # faster_whisper | text (typed input, for tests and touch-only kiosks)
+  model: small.en              # tiny.en | base.en | small.en | medium.en (bigger = better accents, slower)
+  device: cpu
+  compute_type: int8
+  beam_size: 1
+  # Whisper's initial prompt is filled with faculty names and codes from the KB so they are spelled right.
+  bias_with_kb_names: true
+  max_prompt_names: 60
+
+tts:
+  backend: piper               # piper | pyttsx3 | none
+  piper_voice: models/piper/en_US-lessac-medium.onnx   # download: see README
+  pyttsx3_rate: 165
+
+audio:
+  sample_rate: 16000
+  # Energy-based end-of-speech detection for the kiosk microphone.
+  silence_threshold: 0.012     # RMS below this counts as silence
+  end_silence_s: 0.8           # stop recording after this much silence once speech started
+  max_utterance_s: 12
+  start_timeout_s: 8           # give up if nobody speaks
+
+metrics:
+  turn_log: logs/turns.jsonl   # one JSON line per turn (schema in README)
+  report: reports/voice_metrics.md
+  # Targets for the two metrics this module owns. PROVISIONAL until the team agrees on them.
+  target_latency_p95_ms: 3000  # visitor stops speaking -> answer audio ready
+  target_completion_rate: 0.85
+
+api:
+  host: 127.0.0.1
+  port: 8001

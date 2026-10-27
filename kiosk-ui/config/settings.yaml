@@ -1,0 +1,41 @@
+# kiosk-ui settings. Paths are relative to this module's folder (kiosk-ui/).
+
+api:
+  host: 127.0.0.1
+  port: 8002                  # the kiosk screen: http://127.0.0.1:8002/  dashboard: /dashboard
+
+upstream:
+  voice_memory_url: http://127.0.0.1:8001   # Portion 2: POST /turn, /receptionist, /session/reset
+  timeout_s: 20                             # first turn can be slow while speech models warm up
+
+kiosk:
+  id: kiosk-01                # prefix for session ids; one session per visitor
+  idle_reset_s: 90            # no touch/voice for this long -> new visitor (screen and memory reset)
+  speak: true                 # ask voice-memory for the answer audio and play it
+  # What the robot says when the page opens and for each new visitor (spoken with voice-memory's voice).
+  greeting: >-
+    Hello, and welcome to the eighth floor of Central Block! I'm your AI receptionist. I can tell you where
+    a faculty member sits, when you can meet them, or how to find a room. Just tap the microphone and ask me.
+
+map:
+  file: data/floor_map.yaml
+
+kb:
+  # Built by rag-core (`just index`). Read-only: faculty display names (clarification buttons) and their
+  # 8th-floor office rooms (a route for "where is Dr X?" when the answer itself names that room).
+  faculty_json: ../rag-core/data/processed/faculty.json
+
+logs:
+  # The kiosk's own event log (written by this module; schema in README).
+  ui_events: logs/ui_events.jsonl
+  # Read-only inputs for the dashboard, written by the other two modules.
+  rag_queries: ../rag-core/logs/queries.jsonl
+  voice_turns: ../voice-memory/logs/turns.jsonl
+
+evaluation:
+  test_set: evaluation/test_set.jsonl
+  report: reports/evaluation_report.md
+  results: reports/evaluation_results.jsonl
+  # Other modules' reports, copied into the final report when present.
+  rag_reports: ../rag-core/reports
+  voice_report: ../voice-memory/reports/voice_metrics.md

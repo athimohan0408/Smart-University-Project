@@ -272,6 +272,51 @@ def _topic_entries(kb: FacultyKB) -> list[GazetteerEntry]:
     ]
 
 
+def _campus_entries(facts: Sequence[Fact], lexicon: Lexicon) -> list[GazetteerEntry]:
+    """Places and events from the campus sheet (kb/campus.py), plus one entry per kind that has data.
+
+    A kind entry (``facility:washroom``) is what a lexicon word links to ("where is the washroom"), so
+    only kinds with at least one verified place or event get one. ``event:event`` covers every event.
+    """
+    from rag_core.kb.campus import event_kind, kind_of
+
+    entries: list[GazetteerEntry] = []
+    kinds: dict[tuple[EntityType, str], None] = {}
+    for f in facts:
+        if f.category == FactCategory.FACILITY:
+            type_, kind = EntityType.FACILITY, kind_of(f.fact_id)
+        elif f.category == FactCategory.EVENT:
+            type_, kind = EntityType.EVENT, event_kind(f)
+        else:
+            continue
+        name, *aliases = [k for k in f.keywords if k]
+        kind_word = (kind or "").replace("_", " ")
+        entries.append(GazetteerEntry(
+            canonical_id=f.fact_id,
+            type=type_,
+            name=name,
+            aliases=_dedupe_aliases(Alias(text=a, source=AliasSource.NAME) for a in [name, *aliases] if a != kind_word),
+        ))
+        if kind:
+            kinds[(type_, kind)] = None
+            if type_ == EntityType.EVENT:
+                kinds[(type_, "event")] = None
+    for type_, kind in kinds:
+        entries.append(GazetteerEntry(canonical_id=f"{type_.value}:{kind}", type=type_, name=kind.replace("_", " "), aliases=[]))
+    # A classroom or lab number that is no faculty office ("room 806") becomes a room entity too, so
+    # "where is room 806" links; the catalog maps it to the place's fact.
+    offices = {room_key(f.room) for f in facts if f.category == FactCategory.ROOM}
+    rooms: dict[str, str] = {}
+    for f in facts:
+        if f.category == FactCategory.FACILITY and f.room and room_key(f.room) not in offices:
+            rooms.setdefault(f"room:{slugify(f.room)}", f.room)
+    entries += [
+        GazetteerEntry(canonical_id=cid, type=EntityType.ROOM, name=f"room {room}", aliases=[Alias(text=room, source=AliasSource.ROOM)])
+        for cid, room in rooms.items()
+    ]
+    return entries
+
+
 def build_gazetteer(kb: FacultyKB, glossary: Glossary, lexicon: Lexicon, facts: Sequence[Fact]) -> Gazetteer:
     """Deterministic: the same KB, glossary, lexicon and facts give the same gazetteer."""
     entries = [
@@ -280,6 +325,7 @@ def build_gazetteer(kb: FacultyKB, glossary: Glossary, lexicon: Lexicon, facts: 
         *_code_entries(facts, FactCategory.PROGRAMME, EntityType.PROGRAMME, glossary.programme, lambda f: f.programme, lexicon),
         *_room_entries(facts),
         *_topic_entries(kb),
+        *_campus_entries(facts, lexicon),
     ]
     ids = [e.canonical_id for e in entries]
     if dupes := sorted({i for i in ids if ids.count(i) > 1}):

@@ -21,6 +21,14 @@ ingest:
 index: ingest
     {{python}} -m rag_core.retrieval.build_index
 
+# Check data/raw/campus_info.xlsx (classrooms, labs, facilities, events): lists rows that won't load and why.
+campus-check:
+    {{python}} -m rag_core.kb.campus
+
+# Write an empty campus sheet with headers and a README sheet (e.g. `just campus-template new.xlsx`).
+campus-template path:
+    {{python}} -m rag_core.kb.campus --write-template {{path}}
+
 # Train the intent classifier (data/eval/intent_train.jsonl -> data/models/intent.joblib).
 # Needed once after install, then only when intents, training data or the embedding model change.
 train-intent:

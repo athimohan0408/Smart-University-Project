@@ -31,6 +31,7 @@ from rag_core.kb.facts import (
     build_facts,
     facts_digest,
 )
+from rag_core.kb.campus import CampusKB, load_campus_from_settings
 from rag_core.kb.glossary import load_glossary
 from rag_core.kb.models import FacultyKB
 from rag_core.retrieval.bm25 import BM25Index
@@ -75,7 +76,7 @@ def fact_context(settings: Settings) -> FactContext:
 
 
 def load_facts(settings: Settings) -> list[Fact]:
-    return build_facts(load_kb(settings), fact_context(settings))
+    return build_facts(load_kb(settings), fact_context(settings), load_campus_from_settings(settings))
 
 
 def bm25_document(fact: Fact) -> str:
@@ -173,7 +174,8 @@ def main() -> None:
     t0 = time.perf_counter()
 
     kb, ctx = load_kb(settings), fact_context(settings)
-    facts = build_facts(kb, ctx)
+    campus: CampusKB = load_campus_from_settings(settings)
+    facts = build_facts(kb, ctx, campus)
     t_facts = time.perf_counter() - t0
 
     start = time.perf_counter()
@@ -202,6 +204,8 @@ def main() -> None:
         note = "  (no source data yet)" if category in CATEGORIES_WITHOUT_SOURCE and not counts[category] else ""
         print(f"  {category.value:<22}{counts[category]:>5}{note}")
     print(f"unverified facts: {sum(not f.verified for f in result.facts)}")
+    print(f"campus sheet {campus.source}: {len(campus.places)} places, {len(campus.events)} events"
+          + (f", {len(campus.skipped)} rows skipped (run `just campus-check`)" if campus.skipped else ""))
     print(f"embedding model: {embedder.model_name} (dim {embedder.dimension}, profile '{settings.embeddings.model}')")
     print(
         f"wrote: {_display(paths.facts_jsonl)}, {_display(paths.bm25_index)}, "
