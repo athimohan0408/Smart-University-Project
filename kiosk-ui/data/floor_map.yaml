@@ -1,0 +1,79 @@
+# Central Block, 8th floor: map data for the kiosk screen and the route finder.
+#
+# !! PLACEHOLDER LAYOUT !!  The room NUMBERS are the ones in the faculty sheet (871-890), but their
+# POSITIONS, the corridor and the reception location are a guess: no verified floor plan was available.
+# Walk the floor (or get the plan from the estate office), fix the coordinates below, then set
+# `verified: true` and fill `verified_by`. Until then the kiosk shows "approximate map" under the map.
+#
+# Coordinates are SVG units in `viewbox` (x to the right, y DOWN). `metres_per_unit` turns path length
+# into "walk about N m". `facing` is the direction a visitor standing at the kiosk faces on this map;
+# it is used to say "turn left / right" for the first step.
+#
+# nodes:  walkable points (corridor junctions, the start). Edges join nodes; length = straight distance.
+# places: rooms and landmarks. `door` is where the place meets the corridor; `via` is the node the door
+#         joins. A place without `door`/`via` is drawn but not routable.
+
+verified: false
+verified_by: null
+floor: "Central Block, Eighth Floor"
+metres_per_unit: 0.04
+facing: north
+viewbox: [0, 0, 1000, 500]
+start: reception
+
+corridor:            # drawn as the walkable band
+  - [40, 215, 920, 70]
+
+nodes:
+  reception: {x: 500, y: 250}
+  c100: {x: 100, y: 250}
+  c180: {x: 180, y: 250}
+  c260: {x: 260, y: 250}
+  c340: {x: 340, y: 250}
+  c420: {x: 420, y: 250}
+  c580: {x: 580, y: 250}
+  c660: {x: 660, y: 250}
+  c740: {x: 740, y: 250}
+  c820: {x: 820, y: 250}
+  c900: {x: 900, y: 250}
+
+edges:
+  - [c100, c180]
+  - [c180, c260]
+  - [c260, c340]
+  - [c340, c420]
+  - [c420, reception]
+  - [reception, c580]
+  - [c580, c660]
+  - [c660, c740]
+  - [c740, c820]
+  - [c820, c900]
+
+places:
+  # landmarks
+  - {id: "landmark:reception", label: "Reception", kind: reception, rect: [455, 300, 90, 60]}
+
+  # west wing, north side
+  - {id: "room:871", label: "871", kind: room, rect: [65, 90, 70, 120], door: [100, 215], via: c100}
+  - {id: "room:872", label: "872", kind: room, rect: [145, 90, 70, 120], door: [180, 215], via: c180}
+  - {id: "room:873", label: "873", kind: room, rect: [225, 90, 70, 120], door: [260, 215], via: c260}
+  - {id: "room:874", label: "874", kind: room, rect: [305, 90, 70, 120], door: [340, 215], via: c340}
+  - {id: "room:875", label: "875", kind: room, rect: [385, 90, 70, 120], door: [420, 215], via: c420}
+  # west wing, south side
+  - {id: "room:876", label: "876", kind: room, rect: [385, 290, 70, 120], door: [420, 285], via: c420}
+  - {id: "room:877", label: "877", kind: room, rect: [305, 290, 70, 120], door: [340, 285], via: c340}
+  - {id: "room:878", label: "878", kind: room, rect: [225, 290, 70, 120], door: [260, 285], via: c260}
+  - {id: "room:879", label: "879", kind: room, rect: [145, 290, 70, 120], door: [180, 285], via: c180}
+  - {id: "room:880", label: "880", kind: room, rect: [65, 290, 70, 120], door: [100, 285], via: c100}
+  # east wing, north side
+  - {id: "room:881", label: "881", kind: room, rect: [545, 90, 70, 120], door: [580, 215], via: c580}
+  - {id: "room:882", label: "882", kind: room, rect: [625, 90, 70, 120], door: [660, 215], via: c660}
+  - {id: "room:883", label: "883", kind: room, rect: [705, 90, 70, 120], door: [740, 215], via: c740}
+  - {id: "room:884", label: "884", kind: room, rect: [785, 90, 70, 120], door: [820, 215], via: c820}
+  - {id: "room:885", label: "885", kind: room, rect: [865, 90, 70, 120], door: [900, 215], via: c900}
+  # east wing, south side
+  - {id: "room:886", label: "886", kind: room, rect: [865, 290, 70, 120], door: [900, 285], via: c900}
+  - {id: "room:887", label: "887", kind: room, rect: [785, 290, 70, 120], door: [820, 285], via: c820}
+  - {id: "room:888", label: "888", kind: room, rect: [705, 290, 70, 120], door: [740, 285], via: c740}
+  - {id: "room:889", label: "889", kind: room, rect: [625, 290, 70, 120], door: [660, 285], via: c660}
+  - {id: "room:890", label: "890", kind: room, rect: [545, 290, 70, 120], door: [580, 285], via: c580}

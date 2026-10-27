@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart University AI Receptionist</title>
+  <link rel="icon" href="/static/christ-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+  <link rel="stylesheet" href="/static/common.css">
+  <link rel="stylesheet" href="/static/kiosk.css">
+</head>
+<body class="kiosk">
+  <header class="masthead">
+    <img class="logo" src="/static/christ-logo.png" alt="CHRIST (Deemed to be University)">
+    <div class="masthead-title">
+      <h1>AI Receptionist</h1>
+      <div class="where">Smart University · Central Block, 8th Floor</div>
+    </div>
+    <div class="masthead-right">
+      <span id="status" class="status" title="Connection to the receptionist service"><i></i><span class="status-text">Connecting…</span></span>
+      <time id="clock" class="clock"></time>
+    </div>
+  </header>
+
+  <!-- 1. Welcome: the robot greets the visitor -->
+  <section id="intro" class="intro" aria-label="Welcome">
+    <div class="sign">
+      <div class="sign-floor" aria-hidden="true">
+        <span class="sign-numeral">8</span>
+        <span class="sign-caption">Central Block<br>Eighth Floor</span>
+      </div>
+      <div id="intro-slot" class="robot-slot">
+        <button id="robot" class="robot entering" data-mode="idle" type="button"
+                aria-label="Robot receptionist. Tap me to hear the greeting again.">
+          <svg viewBox="0 0 200 250" aria-hidden="true">
+            <ellipse class="r-shadow" cx="100" cy="240" rx="46" ry="5"/>
+            <g class="r-bot">
+              <g class="r-arm r-arm-l"><rect x="28" y="152" width="18" height="54" rx="9"/></g>
+              <g class="r-arm r-arm-r"><rect x="154" y="152" width="18" height="54" rx="9"/></g>
+              <rect class="r-body" x="56" y="144" width="88" height="76" rx="14"/>
+              <circle class="r-core" cx="100" cy="180" r="16"/>
+              <text class="r-core-label" x="100" y="186">8</text>
+              <rect class="r-neck" x="90" y="132" width="20" height="14"/>
+              <g class="r-head">
+                <line class="r-antenna" x1="100" y1="42" x2="100" y2="22"/>
+                <circle class="r-bulb" cx="100" cy="16" r="7"/>
+                <rect class="r-ear" x="28" y="74" width="12" height="30" rx="4"/>
+                <rect class="r-ear" x="160" y="74" width="12" height="30" rx="4"/>
+                <rect class="r-skull" x="40" y="42" width="120" height="92" rx="18"/>
+                <rect class="r-face" x="54" y="56" width="92" height="64" rx="10"/>
+                <g class="r-gaze">
+                  <g class="r-eyes">
+                    <rect class="r-eye" x="72" y="74" width="18" height="20" rx="5"/>
+                    <rect class="r-eye" x="110" y="74" width="18" height="20" rx="5"/>
+                  </g>
+                </g>
+                <rect class="r-mouth" x="86" y="104" width="28" height="5" rx="2.5"/>
+              </g>
+            </g>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="intro-copy">
+      <p class="kicker">Welcome</p>
+      <h2 id="intro-title">Hello, welcome to the 8th floor.</h2>
+      <p id="intro-line" class="lede" aria-live="polite"></p>
+      <div class="intro-actions">
+        <button id="intro-mic" class="btn btn-gold" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+          Speak to me
+        </button>
+        <button id="intro-ask" class="btn btn-line" type="button">Type a question <span aria-hidden="true">→</span></button>
+      </div>
+      <button id="tap-start" class="tap-start" type="button" hidden>Touch the screen to hear me</button>
+    </div>
+  </section>
+
+  <!-- 2. The conversation -->
+  <main id="chat" class="layout" hidden>
+    <section class="pane conversation" aria-label="Conversation">
+      <div id="stage" class="stage">
+        <div id="stage-slot" class="robot-slot"></div>
+        <div class="say" aria-live="polite">
+          <h2 id="robot-title">How can I help you?</h2>
+          <p id="robot-line">Ask me where a faculty member sits, when you can meet them, who teaches a subject,
+            or how to reach a room.</p>
+        </div>
+      </div>
+
+      <div id="welcome" class="welcome">
+        <p class="kicker">Try asking</p>
+        <ol class="chips" id="suggestions">
+          <li><button class="chip" type="button">Where is Dr Nisha Varghese's cabin?</button></li>
+          <li><button class="chip" type="button">Is Dr Deepa V Jose free on Friday?</button></li>
+          <li><button class="chip" type="button">Where is room 877?</button></li>
+          <li><button class="chip" type="button">Who teaches DSA?</button></li>
+        </ol>
+      </div>
+
+      <div id="thread" class="thread" aria-live="polite"></div>
+
+      <form id="ask" class="ask" autocomplete="off">
+        <button id="mic" class="mic" type="button" aria-label="Speak your question" title="Tap to speak">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+        </button>
+        <input id="question" name="question" type="text" placeholder="Type your question, or tap the microphone"
+               aria-label="Your question" maxlength="300">
+        <button class="btn btn-navy send" type="submit">Ask</button>
+      </form>
+
+      <div class="footer-actions">
+        <button id="human" class="human" type="button">Talk to the receptionist</button>
+        <button id="newvisitor" class="ghost" type="button">Start over</button>
+      </div>
+    </section>
+
+    <aside class="details" aria-label="Directions and details">
+      <section class="board">
+        <div class="board-head">
+          <div>
+            <p class="kicker">Find your way</p>
+            <h2 id="details-title">Floor map</h2>
+          </div>
+          <span id="map-warning" class="badge warn" hidden>Approximate map</span>
+        </div>
+        <div id="map" class="map" role="img" aria-label="Map of the 8th floor"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot you"></i>You are here</span>
+          <span><i class="dot dest"></i>Destination</span>
+          <span><i class="line"></i>Your route</span>
+        </div>
+        <ol id="steps" class="steps"></ol>
+        <div class="panel-actions">
+          <button id="pano-btn" class="btn btn-line-light" type="button" hidden>360° view</button>
+        </div>
+      </section>
+      <section class="pane" id="facts-panel" hidden>
+        <p class="kicker">Details</p>
+        <dl id="facts" class="facts"></dl>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="footnote">Answers come only from verified department data. If something can't be verified, the receptionist at the desk will help you.</footer>
+
+  <div id="pano-overlay" class="overlay" hidden>
+    <div class="overlay-box">
+      <div class="overlay-head">
+        <strong id="pano-title">360° view</strong>
+        <div>
+          <button id="pano-prev" class="ghost" type="button">◀</button>
+          <span id="pano-count"></span>
+          <button id="pano-next" class="ghost" type="button">▶</button>
+          <button id="pano-close" class="btn btn-navy" type="button">Close</button>
+        </div>
+      </div>
+      <div id="pano" class="pano"></div>
+    </div>
+  </div>
+
+  <script src="/static/map.js"></script>
+  <script src="/static/kiosk.js"></script>
+</body>
+</html>

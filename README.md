@@ -14,9 +14,7 @@ Each part of the system lives in its own top-level folder with its own README. A
 |---|---|---|---|
 | [`rag-core/`](rag-core/) | Language + RAG core | question -> intent + entities -> retrieval from the faculty knowledge base -> grounded spoken answer -> confidence and hand-over decision. HTTP API: `POST /answer`. | built, tested; **not production-ready yet** (see its README) |
 | [`voice-memory/`](voice-memory/) | Voice, memory + knowledge base (Portion 2) | speech-to-text and text-to-speech; conversation memory that rewrites follow-ups ("where is *her* office?" -> "where is Dr X's office?"); the escalation message and "talk to the receptionist" hand-off; response-latency and query-completion metrics. HTTP API for the UI: `POST /turn`. The KB extension (classrooms, labs, facilities, events) is `rag-core/data/raw/campus_info.xlsx`. | built, tested offline; speech models not yet run on the kiosk (see its README) |
-| `kiosk-ui/` | Kiosk UI | screen: shows the answer, the "talk to the receptionist" button, clarification choices | to do |
-| `navigation/` | Navigation / map | turns `room:` ids from rag-core into directions on the floor map | to do |
-| `analytics/` | Analytics dashboard | reads rag-core's query log (`logs/queries.jsonl`) for usage, escalations, response time | to do |
+| [`kiosk-ui/`](kiosk-ui/) | Kiosk UI, navigation / map, analytics dashboard, evaluation | screen: greeting, question, answer, clarification buttons, "talk to the receptionist"; the 8th-floor map with a route and directions to the room; the dashboard over all three logs; the end-to-end test set and final report. Web app on `:8002` (`/` and `/dashboard`). | built, tested; **map layout is a placeholder** until checked on the floor (see its README) |
 
 ## How the modules talk to each other
 

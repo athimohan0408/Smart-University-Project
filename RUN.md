@@ -80,6 +80,18 @@ For the better offline Piper voice instead, see `voice-memory/README.md`, "Speec
 With rag-core serving: `cd voice-memory` and `python -m voice_memory.api`, then open
 http://127.0.0.1:8001/docs to try `POST /turn` in the browser.
 
+## 6. Kiosk screen, map and dashboard (Portion 3)
+
+One-time: `pip install -e ".\kiosk-ui[dev]"` (Windows) or `pip install -e "./kiosk-ui[dev]"`.
+
+Three terminals, venv active in each: `cd rag-core; just serve`, `cd voice-memory; python -m voice_memory.api`,
+`cd kiosk-ui; python -m kiosk_ui`. Then open http://127.0.0.1:8002/ (kiosk) and http://127.0.0.1:8002/dashboard.
+If voice-memory won't start because a speech package is missing, set `stt: backend: text` and `tts: backend: none`
+in its settings (or a copy named by `VM_SETTINGS_PATH`): the kiosk then speaks answers with the browser's own voice.
+
+Tests: `cd kiosk-ui; python -m pytest` (offline). Final evaluation report, with all three running:
+`cd kiosk-ui; python -m kiosk_ui.evaluate` -> `kiosk-ui/reports/evaluation_report.md`.
+
 ## Notes
 
 - Classrooms, labs, facilities and events are read from `rag-core/data/raw/campus_info.xlsx`. It is an empty

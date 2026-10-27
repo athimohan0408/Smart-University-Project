@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Receptionist Analytics</title>
+  <link rel="icon" href="/static/christ-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+  <link rel="stylesheet" href="/static/common.css">
+  <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+  <header class="masthead">
+    <img class="logo" src="/static/christ-logo.png" alt="CHRIST (Deemed to be University)">
+    <div class="masthead-title">
+      <div class="eyebrow">Smart University AI Receptionist</div>
+      <h1>Analytics</h1>
+      <div class="where">Central Block · 8th Floor</div>
+    </div>
+    <div class="masthead-right filters">
+      <label for="range">Period</label>
+      <select id="range">
+        <option value="1">Last 24 hours</option>
+        <option value="7" selected>Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="">All time</option>
+      </select>
+      <button id="refresh" class="secondary" type="button">Refresh</button>
+    </div>
+  </header>
+
+  <main class="dash">
+    <p id="meta" class="meta"></p>
+    <section class="tiles" id="tiles" aria-label="Totals"></section>
+
+    <section class="grid">
+      <div class="card wide">
+        <h2>Questions by hour of day</h2>
+        <div id="by-hour" class="chart"></div>
+      </div>
+      <div class="card">
+        <h2>Categories</h2>
+        <div id="categories" class="bars"></div>
+      </div>
+      <div class="card">
+        <h2>Escalation reasons</h2>
+        <div id="reasons" class="bars"></div>
+      </div>
+      <div class="card">
+        <h2>Most asked</h2>
+        <table class="table"><thead><tr><th>Question</th><th class="num">Asked</th><th class="num">Answered</th></tr></thead>
+          <tbody id="most-asked"></tbody></table>
+      </div>
+      <div class="card">
+        <h2>Unanswered questions</h2>
+        <p class="hint">Questions the receptionist could not verify. Ones that keep coming up are data to add to the knowledge base.</p>
+        <table class="table"><thead><tr><th>Question</th><th class="num">Times</th><th>Why</th></tr></thead>
+          <tbody id="unanswered"></tbody></table>
+      </div>
+      <div class="card">
+        <h2>Response time</h2>
+        <table class="table"><thead><tr><th>Measured at</th><th class="num">Mean</th><th class="num">p50</th><th class="num">p95</th><th class="num">n</th></tr></thead>
+          <tbody id="timing"></tbody></table>
+        <p class="hint" id="stages"></p>
+      </div>
+      <div class="card">
+        <h2>Most requested places and people</h2>
+        <div id="destinations" class="bars"></div>
+        <div id="dest-map" class="map small-map" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+  <div id="tip" class="tip" role="tooltip" hidden></div>
+
+  <script src="/static/map.js"></script>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>

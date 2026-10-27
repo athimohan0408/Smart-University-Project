@@ -1,0 +1,26 @@
+{"id": "e01", "category": "location", "turns": [{"say": "Where is Dr Sudhakar T's office?", "expect": {"outcome": "answered", "keypoints": ["880"], "route_to": "room:880"}}]}
+{"id": "e02", "category": "location", "turns": [{"say": "Could you guide me to Dr Cynthia T?", "expect": {"outcome": "answered", "keypoints": ["876"], "route_to": "room:876"}}]}
+{"id": "e03", "category": "location", "turns": [{"say": "where do i find dr chandra", "expect": {"outcome": "answered", "keypoints": ["883"], "route_to": "room:883"}}]}
+{"id": "e04", "category": "location", "turns": [{"say": "I need to meet Dr Gobi, where is his cabin?", "expect": {"outcome": "answered", "keypoints": ["878"], "route_to": "room:878"}}]}
+{"id": "e05", "category": "location", "turns": [{"say": "which room is Dr Vijay Arputharaj J in", "expect": {"outcome": "answered", "keypoints": ["890"], "route_to": "room:890"}}]}
+{"id": "e06", "category": "location", "turns": [{"say": "where is doctor neha singal", "expect": {"outcome": ["answered", "clarification"], "keypoints": [], "route_to_if_answered": "room:885"}}], "note": "misspelt, lowercase speech-to-text: answering or asking to confirm are both acceptable"}
+{"id": "e07", "category": "location", "turns": [{"say": "Where does Dr Syam Mohan sit?", "expect": {"outcome": "answered", "keypoints": ["872"], "route_to": "room:872"}}]}
+{"id": "e08", "category": "location_off_floor", "turns": [{"say": "Where is Dr Logeshwaran J?", "expect": {"outcome": "answered", "keypoints": ["622", "Block II"], "off_map": true}}]}
+{"id": "e09", "category": "location_off_floor", "turns": [{"say": "Where is Dr Peter Augustin D's cabin?", "expect": {"outcome": "answered", "keypoints": ["974"], "off_map": true}}]}
+{"id": "e10", "category": "room", "turns": [{"say": "Can you tell me where room 874 is?", "expect": {"outcome": "answered", "keypoints": ["874"], "route_to": "room:874"}}]}
+{"id": "e11", "category": "consultation", "turns": [{"say": "When can I meet Dr Sridevi R?", "expect": {"outcome": "answered", "keypoints": ["Monday", "1:45 pm", "3:45 pm"]}}]}
+{"id": "e12", "category": "consultation", "turns": [{"say": "Is Dr Gobi R free on Thursday?", "expect": {"outcome": "answered", "keypoints": ["2 pm", "4 pm"]}}]}
+{"id": "e13", "category": "consultation", "turns": [{"say": "When are Dr Neha Singhal's consultation hours?", "expect": {"outcome": "answered", "keypoints": ["Wednesday", "Thursday"]}}]}
+{"id": "e14", "category": "schedule", "turns": [{"say": "What classes does Dr Sudhakar T have on Monday?", "expect": {"outcome": "answered", "keypoints": ["MCA"]}}]}
+{"id": "e15", "category": "teaching", "turns": [{"say": "Who teaches DSA?", "expect": {"outcome": "answered", "keypoints": ["Binayak Dutta", "Sridevi R"]}}]}
+{"id": "e16", "category": "research", "turns": [{"say": "Who works on blockchain?", "expect": {"outcome": "answered", "keypoints": ["Sridevi R", "Deepa V Jose"]}}]}
+{"id": "e17", "category": "contact", "turns": [{"say": "What is Dr Sudhakar T's email address?", "expect": {"outcome": "answered", "keypoints": ["sudhakar.t@christuniversity.in"]}}]}
+{"id": "e18", "category": "escalation_not_in_kb", "turns": [{"say": "What is Dr Nisha Varghese's phone number?", "expect": {"outcome": ["escalated", "handoff"], "escalate": true, "keypoints": ["receptionist"]}}]}
+{"id": "e19", "category": "escalation_out_of_scope", "turns": [{"say": "How much does the MCA course cost per year?", "expect": {"outcome": ["escalated", "handoff"], "escalate": true}}]}
+{"id": "e20", "category": "escalation_unknown_person", "turns": [{"say": "Where is Dr Ravi Kumar's cabin?", "expect": {"outcome": ["escalated", "handoff", "clarification"], "no_route": true}}], "note": "unknown name: must not give a room"}
+{"id": "e21", "category": "escalation_no_data", "turns": [{"say": "Excuse me, where's the nearest washroom?", "expect": {"outcome": ["escalated", "handoff"], "escalate": true, "no_route": true}}], "note": "campus sheet is empty by design: must not invent a location"}
+{"id": "e22", "category": "clarification", "turns": [{"say": "Where is Dr George?", "expect": {"outcome": "clarification", "keypoints": ["Jossy P George", "Naived George Eapen"], "min_options": 2}}, {"say": "the first one", "expect": {"outcome": "answered", "keypoints": ["014"], "off_map": true}}]}
+{"id": "e23", "category": "follow_up", "turns": [{"say": "where is Dr Deepa V Jose's cabin?", "expect": {"outcome": "answered", "keypoints": ["877"], "route_to": "room:877"}}, {"say": "is she free on Friday?", "expect": {"outcome": "answered", "keypoints": ["1:45 pm", "3:45 pm"]}}]}
+{"id": "e24", "category": "follow_up", "turns": [{"say": "Where is Dr Nisha Varghese's cabin?", "expect": {"outcome": "answered", "keypoints": ["874"], "route_to": "room:874"}}, {"say": "what is her email?", "expect": {"outcome": "answered", "keypoints": ["nisha.varghese@christuniversity.in"]}}]}
+{"id": "e25", "category": "social", "turns": [{"say": "Hello, good afternoon", "expect": {"outcome": "social", "escalate": false}}]}
+{"id": "e26", "category": "receptionist_request", "turns": [{"say": "Can I talk to a real person please?", "expect": {"outcome": ["escalated", "handoff"], "escalate": true}}]}
