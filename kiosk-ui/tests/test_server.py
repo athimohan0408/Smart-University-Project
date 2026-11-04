@@ -75,7 +75,8 @@ def test_receptionist_button_and_reset(client, settings, voice_memory):
 
 def test_map_route_and_config_endpoints(client):
     m = client.get("/api/map").json()
-    assert m["verified"] is False and len(m["places"]) == 21 and m["start_point"] == [500.0, 250.0]
+    assert m["verified"] is False and len(m["places"]) == 41 and m["start_point"] == [575.0, 250.0]
+    assert any(p["id"] == "area:staff-room" and p["label_at"] for p in m["places"])
     assert client.get("/api/route/room:880").json()["place_id"] == "room:880"
     assert client.get("/api/route/room:607a").status_code == 404
     assert client.get("/api/config").json()["map_verified"] is False
@@ -115,3 +116,27 @@ def test_pages_link_versioned_static_files(client):
     html = client.get("/").text
     assert re.search(r'/static/kiosk\.js\?v=[0-9a-f]+"', html) and re.search(r'/static/common\.css\?v=[0-9a-f]+"', html)
     assert client.get("/").headers["cache-control"] == "no-cache"
+
+
+def test_a_room_only_the_floor_map_knows_is_answered_from_the_map(client, settings):
+    r = client.post("/api/turn", json={"session_id": "s1", "text": "where is room 815?"}).json()
+    t = r["turn"]
+    assert t["answer"] == ("Room 815 is here on the 8th floor, on the north-east side of the floor. "
+                           "I've shown you the way on the map.")
+    assert t["outcome"] == "answered" and t["escalate"] is False and t["options"] == []
+    assert t["answered_by"] == "kiosk_floor_map" and t["kb_escalate_reason"] == "not_in_kb"
+    assert [x["place_id"] for x in r["routes"]] == ["room:815"]
+    assert read_jsonl(settings.logs.ui_events)[-1]["answered_by"] == "kiosk_floor_map"
+    lab = client.post("/api/turn", json={"session_id": "s1", "text": "how do I get to room 811"}).json()["turn"]
+    assert lab["answer"].startswith("Room 811, the MCA Lab, is here on the 8th floor, on the south-east side")
+
+
+def test_rooms_not_on_the_map_still_go_to_the_receptionist(client):
+    t = client.post("/api/turn", json={"session_id": "s1", "text": "where is room 999?"}).json()["turn"]
+    assert t["escalate"] is True and "can't find room 999" in t["answer"]
+
+
+def test_other_questions_that_mention_a_room_are_not_replaced(client):
+    # an escalation about a phone number stays an escalation, even with a room number in it
+    t = client.post("/api/turn", json={"session_id": "s1", "text": "phone number for room 815"}).json()["turn"]
+    assert t["escalate"] is True and "answered_by" not in t

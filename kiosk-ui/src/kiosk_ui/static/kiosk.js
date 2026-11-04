@@ -650,7 +650,7 @@ async function start() {
   state.map = await api("/api/map");
   state.mapView = FloorMapView.render($("map"), state.map);
   $("map-warning").hidden = state.map.verified;
-  $("map-warning").title = "Room positions are approximate until the floor plan is verified.";
+  $("map-warning").title = "Drawn from the floor-plan board and the staff room layout; distances are approximate.";
   state.session = newSessionId();
 
   $("ask").addEventListener("submit", (e) => {
