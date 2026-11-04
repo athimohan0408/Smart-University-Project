@@ -65,7 +65,7 @@ in the sketch and are not drawn. Like the board, the map is **not to scale** (th
 cabins are readable), so distances are approximate; the kiosk says "Not to scale" above the map.
 
 Routes start at the kiosk, enter the staff room through the nearest of the three passages and run along its
-middle aisle ("From the kiosk, go through the Faculty Staff Room entrance between rooms 884 and 883 and walk about
+middle aisle ("From the kiosk, go through the Faculty Staff Room entrance C816, between rooms 884 and 883 and walk about
 8 m to the middle aisle. Turn left and walk about 4 m. Room 874 is on your right."). A first step names a landmark
 when it can; otherwise "left/right" assume the visitor faces the kiosk, i.e. north.
 
@@ -77,10 +77,32 @@ To confirm or correct it:
 2. `python -m kiosk_ui.navigation`: every room must be reachable; read the directions.
 3. Set `verified: true` and `verified_by: "<name>, <date>"`.
 
-**Who sits where comes from rag-core's faculty sheet, not from the map** (the map only knows room numbers). The
+**The door plates and the directory board disagree with rag-core's faculty sheet for 11 rooms**: see [`reports/room_occupancy_check.md`](reports/room_occupancy_check.md). **Who sits where comes from rag-core's faculty sheet, not from the map** (the map only knows room numbers). The
 sketch and the sheet disagree for 873 (sketch: Helen; sheet: Dr Helen K Joy in 885), 877 (Peter; sheet: Dr Deepa V
 Jose, Dr Peter Augustin D in 974), 882 (Nizar Banu; sheet: 607A), 885 (Vaidehi; sheet: Dr Neha Singhal and Dr Helen K
 Joy) and 888 (Rajesh; sheet: Dr Rajesh Kanna R in 322). Check with the department and update the sheet if needed.
+
+### Walking directions (full screen)
+
+"Show me the way" (under an answer with a route, and on the map) opens a full-screen walkthrough, like a navigation
+app: a banner with a turn arrow, the distance and the instruction ("Then: ..." previews the next step); the step's
+photo large beside the map; the map zooms to the current stretch while a dot walks it. **Play** reads each step in
+the kiosk's voice (`GET /api/speak`), walks it, and moves on by itself to "You have arrived" with the door's photo;
+**Back / Next** step through by hand. Each route carries what this needs per step: `step_spans` (the part of
+`points` it walks), `step_kinds` (the arrow: start, enter, left, right, straight, around, arrive-left/right/straight),
+`step_metres` and `step_photos`.
+
+### Photos along the route
+
+`data/photos/` holds 19 of the team's phone photos (November 2026), resized for the kiosk (about 1024 px, under
+200 KB each, no metadata): 15 cabin doors with their name plates (871-874, 876-879, 881-885, 888, 890), the C816
+entrance, the Faculty Lounge, the lifts and the staircase. A node or place names its photo (`photo:` in the map
+file). The kiosk shows a landmark's photo next to the step that names it ("go through the Faculty Staff Room entrance
+C816 ...") and the room's door next to the last step ("Look for this door"); tap to enlarge. Rooms with a photo can
+also be tapped on the map. No photo yet: 875, 880, 886, 887, 889, the C817 doorway's place on the map (see below).
+
+To add one: put a JPG in `data/photos/` (landscape or portrait, no people, ideally under 400 KB) and add
+`photo: <file>` to the node or place in `data/floor_map.yaml`.
 
 ### 360° photos
 

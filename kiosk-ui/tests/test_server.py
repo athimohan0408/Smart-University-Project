@@ -140,3 +140,30 @@ def test_other_questions_that_mention_a_room_are_not_replaced(client):
     # an escalation about a phone number stays an escalation, even with a room number in it
     t = client.post("/api/turn", json={"session_id": "s1", "text": "phone number for room 815"}).json()["turn"]
     assert t["escalate"] is True and "answered_by" not in t
+
+
+def test_photos_are_served_and_routes_carry_them(client):
+    r = client.get("/api/route/room:874").json()
+    assert r["step_photos"][-1] == "room-874.jpg"
+    img = client.get("/photos/room-874.jpg")
+    assert img.status_code == 200 and img.headers["content-type"] == "image/jpeg"
+    assert client.get("/photos/nope.jpg").status_code == 404
+
+
+def test_speak_endpoint(client):
+    # the test settings have the kiosk voice off, so the browser speaks instead
+    assert client.get("/api/speak", params={"text": "Turn left and walk about 4 m."}).status_code == 404
+    assert client.get("/api/speak", params={"text": ""}).status_code == 422
+    assert client.get("/api/speak", params={"text": "x" * 301}).status_code == 422
+
+
+def test_route_carries_the_walkthrough(client):
+    r = client.get("/api/route/room:874").json()
+    assert r["step_kinds"] == ["enter", "left", "arrive-right"]
+    assert r["step_spans"][0][0] == 0 and r["step_spans"][-1][1] == len(r["points"]) - 1
+
+
+def test_kiosk_page_has_the_walkthrough(client):
+    html = client.get("/").text
+    for needed in ('id="nav"', 'id="nav-start"', 'id="nav-play"', 'id="nav-map"', 'id="nav-photo"'):
+        assert needed in html

@@ -217,6 +217,15 @@ function showResult(result, node) {
     h.textContent = "The receptionist has been told and will help you shortly.";
     node.append(h);
   }
+  const route = (result.routes || [])[0];
+  if (route && (route.step_spans || []).length) {
+    const go = document.createElement("button");
+    go.type = "button";
+    go.className = "btn btn-gold show-way";
+    go.innerHTML = "&#9654; Show me the way";
+    go.addEventListener("click", () => openNav(route));
+    node.append(go);
+  }
   node.scrollIntoView({ behavior: "smooth", block: "end" });
   setStatus(t.outcome !== "error");
   const after = t.escalate ? "sorry" : "idle";
@@ -236,12 +245,19 @@ function showDetails(turn, routes, offMap) {
   if (route) {
     state.mapView.showRoute(route);
     $("details-title").textContent = `Route to room ${route.label} · about ${Math.round(route.length_m)} m`;
-    for (const s of route.steps) {
+    route.steps.forEach((s, i) => {
       const li = document.createElement("li");
-      li.textContent = s;
+      const text = document.createElement("span");
+      text.textContent = s;
+      li.append(text);
+      const photo = (route.step_photos || [])[i];
+      const last = i === route.steps.length - 1;
+      if (photo) li.append(photoThumb(photo, last ? `Look for this door: room ${route.label}` : s, last));
       steps.append(li);
-    }
+    });
     setPanoramas(route.panoramas || [], `Room ${route.label}`);
+    state.route = route;
+    $("nav-start").hidden = !(route.step_spans || []).length;
   } else {
     state.mapView.clear();
     $("details-title").textContent = "Floor map";
@@ -251,6 +267,8 @@ function showDetails(turn, routes, offMap) {
       steps.append(li);
     }
     setPanoramas([], "");
+    state.route = null;
+    $("nav-start").hidden = true;
   }
 
   const facts = $("facts");
@@ -270,6 +288,132 @@ function showDetails(turn, routes, offMap) {
   if (turn.outcome === "answered") add("Source", "Verified department data");
   else if (turn.escalate) add("Status", "Please check with the receptionist");
   $("facts-panel").hidden = !facts.children.length;
+}
+
+// ---------- walking directions, one step at a time (like a navigation app) ----------
+const ARROWS = {  // 24x24 icons
+  start: "M12 3l6 7h-4v11h-4V10H6z",
+  straight: "M12 3l6 7h-4v11h-4V10H6z",
+  left: "M9 5L3 11l6 6v-4h6a2 2 0 0 1 2 2v6h4v-6a6 6 0 0 0-6-6H9z",
+  right: "M15 5l6 6-6 6v-4H9a2 2 0 0 0-2 2v6H3v-6a6 6 0 0 1 6-6h6z",
+  around: "M6 21v-9a6 6 0 0 1 12 0v3h3l-5 6-5-6h3v-3a2 2 0 0 0-4 0v9z",
+  enter: "M4 3h10v4h-2V5H6v14h6v-2h2v4H4zM15 8l5 4-5 4v-3H9v-2h6z",
+  arrive: "M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z",
+};
+const nav = { route: null, i: 0, playing: false, token: 0, view: null };
+
+function openNav(route, { play = true } = {}) {
+  touch();
+  stopSpeaking();
+  nav.route = route;
+  $("nav").hidden = false;
+  if (!nav.view) nav.view = FloorMapView.render($("nav-map"), state.map);
+  nav.view.navReset();
+  showNavStep(0, { play });
+}
+
+function closeNav() {
+  nav.token++;
+  nav.playing = false;
+  stopSpeaking();
+  nav.view?.navReset();
+  $("nav").hidden = true;
+}
+
+function navLabel(i) {
+  const r = nav.route, kind = r.step_kinds[i] || "straight";
+  return kind.startsWith("arrive") ? "arrive" : kind;
+}
+
+// Show step i: banner, photo, the map zoomed to this stretch. play: speak it, walk it, then go on by itself.
+async function showNavStep(i, { play = false } = {}) {
+  const r = nav.route, last = r.steps.length - 1, token = ++nav.token;
+  nav.i = i;
+  nav.playing = play;
+  stopSpeaking();
+  touch();
+  const arrived = i === last;
+  $("nav-arrow-path").setAttribute("d", ARROWS[navLabel(i)] || ARROWS.straight);
+  $("nav").classList.toggle("arrived", arrived);
+  $("nav-dist").textContent = arrived ? "You have arrived" : `${Math.max(1, Math.round(r.step_metres[i]))} m`;
+  $("nav-instr").textContent = r.steps[i];
+  $("nav-then").textContent = arrived ? "" : `Then: ${r.steps[i + 1]}`;
+  const photo = r.step_photos[i];
+  $("nav-body").classList.toggle("no-photo", !photo);
+  if (photo) {
+    $("nav-photo").src = `/photos/${encodeURIComponent(photo)}`;
+    $("nav-photo-cap").textContent = arrived ? `Look for this door: room ${r.label}` : "Look for this";
+  } else {
+    $("nav-photo").removeAttribute("src");
+  }
+  $("nav-progress").replaceChildren(...r.steps.map((_, k) => {
+    const dot = document.createElement("span");
+    dot.className = k < i ? "done" : k === i ? "now" : "";
+    return dot;
+  }));
+  const label = document.createElement("em");
+  label.textContent = `Step ${i + 1} of ${r.steps.length}`;
+  $("nav-progress").append(label);
+  $("nav-prev").disabled = i === 0;
+  $("nav-next").disabled = arrived;
+  $("nav-play").innerHTML = play ? "&#10074;&#10074; Pause" : arrived ? "&#8635; Replay" : "&#9654; Play";
+
+  const pts = nav.view.navStep(r, i);
+  nav.view.focus(arrived ? r.points.slice(-3) : pts);
+  const walking = nav.view.walk(pts, Math.min(6000, Math.max(1600, r.step_metres[i] * 320)));
+  const speaking = speakStep(r.steps[i]);
+  await Promise.all([walking, speaking]);
+  if (token !== nav.token || !nav.playing) return;
+  if (arrived) { nav.playing = false; $("nav-play").innerHTML = "&#8635; Replay"; return; }
+  await new Promise((res) => setTimeout(res, 700));
+  if (token === nav.token && nav.playing) showNavStep(i + 1, { play: true });
+}
+
+// Speak a step in the kiosk's voice (Piper, from the server), or the browser's voice if the kiosk has none.
+async function speakStep(text) {
+  if (!state.config?.speak) return;
+  try {
+    const res = await fetch(`/api/speak?text=${encodeURIComponent(text)}`);
+    if (res.ok) {
+      const url = URL.createObjectURL(await res.blob());
+      await speak({ src: url });
+      URL.revokeObjectURL(url);
+      return;
+    }
+  } catch { /* fall back to the browser's voice */ }
+  await speak({ text });
+}
+
+// ---------- phone photos of doors and landmarks ----------
+function photoThumb(file, caption, isDoor) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = `step-photo${isDoor ? " door" : ""}`;
+  b.setAttribute("aria-label", `Show photo: ${caption}`);
+  const img = document.createElement("img");
+  img.src = `/photos/${encodeURIComponent(file)}`;
+  img.alt = "";
+  img.loading = "lazy";
+  b.append(img);
+  if (isDoor) {
+    const tag = document.createElement("span");
+    tag.textContent = "Look for this door";
+    b.append(tag);
+  }
+  b.addEventListener("click", () => openPhoto(file, caption));
+  return b;
+}
+
+function openPhoto(file, caption) {
+  touch();
+  $("photo-img").src = `/photos/${encodeURIComponent(file)}`;
+  $("photo-caption").textContent = caption;
+  $("photo-overlay").hidden = false;
+}
+
+function closePhoto() {
+  $("photo-overlay").hidden = true;
+  $("photo-img").removeAttribute("src");
 }
 
 // ---------- 360-degree photos ----------
@@ -596,6 +740,8 @@ function newVisitor({ spoken = false } = {}) {
   state.talked = false;
   stopMic(false);
   closePanorama();
+  closePhoto();
+  closeNav();
   stopSpeaking();
   $("thread").replaceChildren();
   $("welcome").hidden = false;
@@ -648,7 +794,9 @@ async function start() {
   tick(); setInterval(tick, 15000);
   state.config = await api("/api/config");
   state.map = await api("/api/map");
-  state.mapView = FloorMapView.render($("map"), state.map);
+  state.mapView = FloorMapView.render($("map"), state.map, {
+    onPlace: (p) => p.photo && openPhoto(p.photo, p.kind === "room" ? `Room ${p.label}` : p.label),
+  });
   $("map-warning").hidden = state.map.verified;
   $("map-warning").title = "Drawn from the floor-plan board and the staff room layout; distances are approximate.";
   state.session = newSessionId();
@@ -681,7 +829,18 @@ async function start() {
   $("pano-close").addEventListener("click", closePanorama);
   $("pano-prev").addEventListener("click", () => stepPanorama(-1));
   $("pano-next").addEventListener("click", () => stepPanorama(1));
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePanorama(); });
+  $("photo-close").addEventListener("click", closePhoto);
+  $("nav-start").addEventListener("click", () => state.route && openNav(state.route));
+  $("nav-close").addEventListener("click", closeNav);
+  $("nav-prev").addEventListener("click", () => showNavStep(Math.max(0, nav.i - 1)));
+  $("nav-next").addEventListener("click", () => showNavStep(Math.min(nav.route.steps.length - 1, nav.i + 1)));
+  $("nav-play").addEventListener("click", () => {
+    if (nav.playing) { nav.playing = false; nav.token++; stopSpeaking(); $("nav-play").innerHTML = "&#9654; Play"; return; }
+    const last = nav.route.steps.length - 1;
+    showNavStep(nav.i === last ? 0 : nav.i, { play: true });
+  });
+  $("photo-overlay").addEventListener("click", (e) => { if (e.target === $("photo-overlay")) closePhoto(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closePanorama(); closePhoto(); closeNav(); } });
   checkHealth(); setInterval(checkHealth, 30000);
 
   try { state.greeting = await api("/api/greeting"); }

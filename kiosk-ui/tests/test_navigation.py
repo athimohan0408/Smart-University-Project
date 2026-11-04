@@ -38,7 +38,7 @@ def test_ids_are_matched_case_insensitively_and_bare_numbers_work(fmap):
 
 
 ENTRANCES = ("the Faculty Staff Room entrance by room 890", "the Faculty Staff Room entrance between rooms 888 and 885",
-             "the Faculty Staff Room entrance between rooms 884 and 883")
+             "the Faculty Staff Room entrance C816, between rooms 884 and 883")
 
 
 def test_cabins_are_reached_through_one_of_the_three_entrances(fmap):
@@ -57,7 +57,7 @@ def test_cabins_are_reached_through_one_of_the_three_entrances(fmap):
 def test_directions_from_the_kiosk(fmap):
     # the kiosk stands in the north corridor, right beside the entrance between 884 and 883
     assert fmap.route("room:874").steps == [
-        "From the kiosk, go through the Faculty Staff Room entrance between rooms 884 and 883 and walk about 8 m "
+        "From the kiosk, go through the Faculty Staff Room entrance C816, between rooms 884 and 883 and walk about 8 m "
         "to the middle aisle.",
         "Turn left and walk about 4 m.",
         "Room 874 is on your right.",
@@ -100,3 +100,42 @@ def test_bad_maps_are_rejected(fmap):
     data["places"][first_room]["via"] = None
     with pytest.raises(ValueError, match="both door and via"):
         FloorMap.model_validate(data)
+
+
+def test_photos_show_the_entrance_and_the_door(fmap):
+    route = fmap.route("room:874")
+    assert len(route.step_photos) == len(route.steps)
+    assert route.step_photos[0] == "entrance-c816.jpg"  # "go through the entrance C816 ..."
+    assert route.step_photos[-1] == "room-874.jpg"      # "Room 874 is on your right": its door
+    # a room without a photo has none on its last step (and nothing breaks)
+    assert fmap.route("room:875").step_photos[-1] is None
+
+
+def test_every_linked_photo_file_exists_and_is_small(fmap):
+    photos = MODULE_ROOT / "data" / "photos"
+    linked = {n.photo for n in fmap.nodes.values() if n.photo} | {p.photo for p in fmap.places if p.photo}
+    assert linked, "no photos linked"
+    for name in linked:
+        f = photos / name
+        assert f.exists(), name
+        assert f.stat().st_size < 400_000, name  # resized for the kiosk, not 1 MB phone originals
+
+
+@pytest.mark.parametrize("number", CABINS + OUTER)
+def test_walkthrough_steps_cover_the_whole_route_in_order(fmap, number):
+    r = fmap.route(f"room:{number}")
+    n = len(r.steps)
+    assert len(r.step_spans) == len(r.step_kinds) == len(r.step_metres) == len(r.step_photos) == n
+    # each step starts where the previous one ended, from the kiosk to the door
+    assert r.step_spans[0][0] == 0 and r.step_spans[-1][1] == len(r.points) - 1
+    for (a1, b1), (a2, b2) in zip(r.step_spans, r.step_spans[1:]):
+        assert b1 == a2 and a1 < b1
+    assert r.step_kinds[-1].startswith("arrive-")
+    assert all(k in {"start", "enter", "left", "right", "straight", "around"} for k in r.step_kinds[:-1])
+    assert abs(sum(r.step_metres) - r.length_m) < 0.5
+
+
+def test_walkthrough_arrows_match_the_words(fmap):
+    r = fmap.route("room:874")
+    assert r.step_kinds == ["enter", "left", "arrive-right"]  # go through C816, turn left, on your right
+    assert fmap.route("room:815").step_kinds[0] == "right"

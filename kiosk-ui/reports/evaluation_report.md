@@ -1,6 +1,6 @@
 # Final evaluation report
 
-Generated 2026-11-03T22:49:15 by `python -m kiosk_ui.evaluate` from `test_set.jsonl` (26 scenarios, 29 turns).
+Generated 2026-11-04T21:42:33 by `python -m kiosk_ui.evaluate` from `test_set.jsonl` (26 scenarios, 29 turns).
 Every turn went through the kiosk (Portion 3) -> voice-memory (Portion 2) -> rag-core (Portion 1).
 
 ## Summary (end to end)
@@ -14,8 +14,8 @@ Every turn went through the kiosk (Portion 3) -> voice-memory (Portion 2) -> rag
 | escalations that should happen and did | 100.0% (4/4) |
 | answerable questions wrongly escalated | 0.0% (0/21) |
 | all escalations in the run | 5 |
-| response time at the kiosk (typed) | mean 630.0 ms, p50 593.2 ms, p95 897.4 ms |
-| voice-memory turn total | mean 611.6 ms, p95 874.0 ms |
+| response time at the kiosk (typed) | mean 3857.9 ms, p50 3717.8 ms, p95 5887.4 ms |
+| voice-memory turn total | mean 3781.8 ms, p95 5788.8 ms |
 
 ## By category
 
@@ -50,7 +50,7 @@ None.
 
 ## Kiosk usage (from the analytics log)
 
-585 kiosk events logged so far (includes this evaluation run).
+714 kiosk events logged so far (includes this evaluation run).
 
 ## Numbers from the other modules
 
