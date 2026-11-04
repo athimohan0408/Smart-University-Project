@@ -135,6 +135,7 @@
         </div>
         <ol id="steps" class="steps"></ol>
         <div class="panel-actions">
+          <button id="nav-start" class="btn btn-gold" type="button" hidden>&#9654; Show me the way</button>
           <button id="pano-btn" class="btn btn-line-light" type="button" hidden>360° view</button>
         </div>
       </section>
@@ -146,6 +147,44 @@
   </main>
 
   <footer class="footnote">Answers come only from verified department data. If something can't be verified, the receptionist at the desk will help you.</footer>
+
+  <!-- 3. Walking directions, one step at a time (like a navigation app) -->
+  <section id="nav" class="nav" hidden aria-label="Walking directions">
+    <header class="nav-banner">
+      <div class="nav-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path id="nav-arrow-path" d=""/></svg></div>
+      <div class="nav-text">
+        <div class="nav-dist" id="nav-dist"></div>
+        <div class="nav-instr" id="nav-instr" aria-live="polite"></div>
+        <div class="nav-then" id="nav-then"></div>
+      </div>
+      <button id="nav-close" class="nav-exit" type="button">Exit</button>
+    </header>
+    <div class="nav-body" id="nav-body">
+      <figure class="nav-photo" id="nav-photo-box">
+        <img id="nav-photo" alt="">
+        <figcaption id="nav-photo-cap"></figcaption>
+      </figure>
+      <div class="nav-map map" id="nav-map" role="img" aria-label="Map of the route"></div>
+    </div>
+    <footer class="nav-foot">
+      <div class="nav-progress" id="nav-progress"></div>
+      <div class="nav-controls">
+        <button id="nav-prev" class="btn btn-line" type="button">&#8249; Back</button>
+        <button id="nav-play" class="btn btn-gold" type="button">&#9654; Play</button>
+        <button id="nav-next" class="btn btn-navy" type="button">Next &#8250;</button>
+      </div>
+    </footer>
+  </section>
+
+  <div id="photo-overlay" class="overlay" hidden>
+    <figure class="photo-box">
+      <img id="photo-img" alt="">
+      <figcaption>
+        <span id="photo-caption"></span>
+        <button id="photo-close" class="btn btn-navy" type="button">Close</button>
+      </figcaption>
+    </figure>
+  </div>
 
   <div id="pano-overlay" class="overlay" hidden>
     <div class="overlay-box">

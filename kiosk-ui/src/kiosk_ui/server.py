@@ -36,6 +36,7 @@ from kiosk_ui.navigation import FloorMap, Route
 
 STATIC = Path(__file__).resolve().parent / "static"
 PANORAMAS = "panoramas"  # data/panoramas/ next to the map file: 360-degree photos, served at /panoramas/
+PHOTOS = "photos"  # data/photos/ next to the map file: phone photos of doors and landmarks, served at /photos/
 SORRY = ("I'm sorry, I'm having trouble answering right now. "
          "Please speak to the receptionist at the desk.")
 # "where is room 815?" that the knowledge base can't answer, but the floor map can
@@ -102,6 +103,9 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
     panorama_dir = settings.map.file.parent / PANORAMAS
     panorama_dir.mkdir(parents=True, exist_ok=True)
     app.mount("/panoramas", StaticFiles(directory=panorama_dir), name="panoramas")
+    photo_dir = settings.map.file.parent / PHOTOS
+    photo_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/photos", StaticFiles(directory=photo_dir), name="photos")
 
     def http() -> httpx.Client:
         if "http" not in state:  # used outside the lifespan (e.g. a TestClient without `with`)
@@ -191,6 +195,13 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
         if not settings.kiosk.speak or (data := greeting.wav()) is None:
             raise HTTPException(status_code=404, detail="no greeting audio: the browser speaks the greeting")
         return Response(data, media_type="audio/wav", headers={"Cache-Control": "no-cache"})
+
+    @app.get("/api/speak", include_in_schema=False)
+    def speak(text: str = Query(min_length=1, max_length=300)) -> Response:
+        """A navigation step, spoken with the same voice as the answers (the walkthrough reads each step aloud)."""
+        if (data := voice.wav(text)) is None:
+            raise HTTPException(status_code=404, detail="no kiosk voice: the browser speaks instead")
+        return Response(data, media_type="audio/wav", headers={"Cache-Control": "max-age=3600"})
 
     @app.post("/api/turn", response_model=TurnOut)
     def turn(body: TurnIn) -> TurnOut:

@@ -18,6 +18,8 @@
 #
 # nodes:  walkable points. `name` makes a node a landmark the directions mention ("... to the ...").
 # edges:  pairs of nodes you can walk between in a straight line.
+# photo:  a file in data/photos/ (from the team's phone photos, November 2026): a landmark's photo is shown with
+#         the step that names it, a room's photo (its door and name plate) with the last step.
 # places: drawn rectangles. `door` is where a place meets a walkway and `via` the node there; a place with both
 #         is a destination (rooms 808-815, the cabins, the lounge). `label_at` moves a label off the middle.
 
@@ -61,7 +63,7 @@ nodes:
   n235: {x: 235, y: 250, name: "the Faculty Staff Room entrance by room 890"}
   n350: {x: 350, y: 250}
   n390: {x: 390, y: 250, name: "the Faculty Staff Room entrance between rooms 888 and 885"}
-  n565: {x: 565, y: 250, name: "the Faculty Staff Room entrance between rooms 884 and 883"}
+  n565: {x: 565, y: 250, name: "the Faculty Staff Room entrance C816, between rooms 884 and 883", photo: entrance-c816.jpg}
   n875: {x: 875, y: 250}
   n1000: {x: 1000, y: 250}
   # west corridor (x 155)
@@ -189,7 +191,7 @@ places:
   - {id: "area:staff-room", label: "Faculty Staff Room · C816", kind: area, rect: [200, 0, 660, 230], label_at: [420, 225]}
   - {id: "area:hall", label: "Open hall", kind: hall, rect: [200, 270, 760, 380], label_at: [580, 520]}
   - {id: "facility:faculty-washroom", label: "Faculty washroom", kind: facility, rect: [0, 0, 190, 90]}
-  - {id: "place:faculty-lounge", label: "Faculty Lounge", kind: facility, rect: [0, 90, 190, 110], door: [170, 200], via: lounge_door}
+  - {id: "place:faculty-lounge", label: "Faculty Lounge", kind: facility, rect: [0, 90, 190, 110], door: [170, 200], via: lounge_door, photo: faculty-lounge.jpg}
   - {id: "facility:water-west", label: "Water", kind: facility, rect: [0, 200, 110, 100]}
   - {id: "facility:lift-west", label: "Lift", kind: facility, rect: [0, 300, 110, 110]}
   - {id: "facility:ccd", label: "CCD café", kind: facility, rect: [0, 410, 110, 390]}
@@ -198,10 +200,10 @@ places:
   - {id: "facility:ladies-east", label: "Ladies", kind: facility, rect: [1040, 240, 200, 120]}
   - {id: "facility:gents-south", label: "Gents", kind: facility, rect: [690, 690, 170, 110]}
   - {id: "facility:ladies-south", label: "Ladies", kind: facility, rect: [860, 690, 180, 110]}
-  - {id: "facility:stairs-north", label: "Staircase", kind: stairs, rect: [420, 285, 300, 50]}
-  - {id: "facility:lift-north", label: "Lift", kind: facility, rect: [725, 285, 65, 50]}
-  - {id: "facility:stairs-south", label: "Staircase", kind: stairs, rect: [425, 585, 305, 50]}
-  - {id: "facility:lift-south", label: "Lift", kind: facility, rect: [745, 585, 65, 50]}
+  - {id: "facility:stairs-north", label: "Staircase", kind: stairs, rect: [420, 285, 300, 50], photo: staircase.jpg}
+  - {id: "facility:lift-north", label: "Lift", kind: facility, rect: [725, 285, 65, 50], photo: lifts.jpg}
+  - {id: "facility:stairs-south", label: "Staircase", kind: stairs, rect: [425, 585, 305, 50], photo: staircase.jpg}
+  - {id: "facility:lift-south", label: "Lift", kind: facility, rect: [745, 585, 65, 50], photo: lifts.jpg}
 
   # ---- outer rooms (from the board) ----
   - {id: "room:815", label: "815", kind: room, rect: [1040, 0, 200, 120], door: [1040, 110], via: e110}
@@ -215,23 +217,23 @@ places:
 
   # ---- faculty cabins inside the staff room (from the sketch) ----
   # west, by the entrance passage
-  - {id: "room:871", label: "871", kind: room, rect: [242, 14, 62, 66], door: [242, 55], via: p55}
-  - {id: "room:890", label: "890", kind: room, rect: [242, 100, 62, 66], door: [242, 130], via: p130}
+  - {id: "room:871", label: "871", kind: room, rect: [242, 14, 62, 66], door: [242, 55], via: p55, photo: room-871.jpg}
+  - {id: "room:890", label: "890", kind: room, rect: [242, 100, 62, 66], door: [242, 130], via: p130, photo: room-890.jpg}
   # north wall, west to east
-  - {id: "room:872", label: "872", kind: room, rect: [315, 10, 70, 70], door: [350, 80], via: m350}
-  - {id: "room:873", label: "873", kind: room, rect: [385, 10, 70, 70], door: [420, 80], via: m420}
-  - {id: "room:874", label: "874", kind: room, rect: [455, 10, 70, 70], door: [490, 80], via: m490}
+  - {id: "room:872", label: "872", kind: room, rect: [315, 10, 70, 70], door: [350, 80], via: m350, photo: room-872.jpg}
+  - {id: "room:873", label: "873", kind: room, rect: [385, 10, 70, 70], door: [420, 80], via: m420, photo: room-873.jpg}
+  - {id: "room:874", label: "874", kind: room, rect: [455, 10, 70, 70], door: [490, 80], via: m490, photo: room-874.jpg}
   - {id: "room:875", label: "875", kind: room, rect: [525, 10, 70, 70], door: [560, 80], via: m560}
-  - {id: "room:876", label: "876", kind: room, rect: [595, 10, 70, 70], door: [630, 80], via: m630}
-  - {id: "room:877", label: "877", kind: room, rect: [665, 10, 70, 70], door: [700, 80], via: m700}
-  - {id: "room:878", label: "878", kind: room, rect: [735, 10, 70, 70], door: [770, 80], via: m770}
+  - {id: "room:876", label: "876", kind: room, rect: [595, 10, 70, 70], door: [630, 80], via: m630, photo: room-876.jpg}
+  - {id: "room:877", label: "877", kind: room, rect: [665, 10, 70, 70], door: [700, 80], via: m700, photo: room-877.jpg}
+  - {id: "room:878", label: "878", kind: room, rect: [735, 10, 70, 70], door: [770, 80], via: m770, photo: room-878.jpg}
   # second row, west to east, with the two passages between them
-  - {id: "room:888", label: "888", kind: room, rect: [315, 100, 65, 75], door: [350, 100], via: m350}
-  - {id: "room:885", label: "885", kind: room, rect: [405, 100, 70, 75], door: [440, 100], via: m440}
-  - {id: "room:884", label: "884", kind: room, rect: [475, 100, 70, 75], door: [510, 100], via: m510}
-  - {id: "room:883", label: "883", kind: room, rect: [585, 100, 60, 75], door: [615, 100], via: m615}
-  - {id: "room:882", label: "882", kind: room, rect: [645, 100, 60, 75], door: [675, 100], via: m675}
-  - {id: "room:881", label: "881", kind: room, rect: [705, 100, 60, 75], door: [735, 100], via: m735}
+  - {id: "room:888", label: "888", kind: room, rect: [315, 100, 65, 75], door: [350, 100], via: m350, photo: room-888.jpg}
+  - {id: "room:885", label: "885", kind: room, rect: [405, 100, 70, 75], door: [440, 100], via: m440, photo: room-885.jpg}
+  - {id: "room:884", label: "884", kind: room, rect: [475, 100, 70, 75], door: [510, 100], via: m510, photo: room-884.jpg}
+  - {id: "room:883", label: "883", kind: room, rect: [585, 100, 60, 75], door: [615, 100], via: m615, photo: room-883.jpg}
+  - {id: "room:882", label: "882", kind: room, rect: [645, 100, 60, 75], door: [675, 100], via: m675, photo: room-882.jpg}
+  - {id: "room:881", label: "881", kind: room, rect: [705, 100, 60, 75], door: [735, 100], via: m735, photo: room-881.jpg}
   # east end
-  - {id: "room:879", label: "879", kind: room, rect: [790, 82, 65, 58], door: [790, 100], via: m775}
+  - {id: "room:879", label: "879", kind: room, rect: [790, 82, 65, 58], door: [790, 100], via: m775, photo: room-879.jpg}
   - {id: "room:880", label: "880", kind: room, rect: [790, 145, 65, 50], door: [790, 172], via: e172}

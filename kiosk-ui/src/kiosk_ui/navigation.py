@@ -28,6 +28,7 @@ class Node(BaseModel):
     x: float
     y: float
     name: str | None = None  # a landmark the directions can name ("the Faculty Staff Room entrance")
+    photo: str | None = None  # what the landmark looks like, a file name in data/photos/ (shown with its step)
     panorama: str | None = None  # 360-degree photo taken here, a file name in data/panoramas/
 
 
@@ -40,6 +41,7 @@ class Place(BaseModel):
     door: tuple[float, float] | None = None
     via: str | None = None
     label_at: tuple[float, float] | None = None  # where to draw the label (default: the middle of rect)
+    photo: str | None = None  # the door with its name plate, a file name in data/photos/ ("look for this door")
     panorama: str | None = None  # 360-degree photo of the door / inside, a file name in data/panoramas/
 
     @property
@@ -110,9 +112,16 @@ class FloorMap(BaseModel):
         panoramas = [p for n in names if (p := self.nodes[n].panorama)]
         if place.panorama:
             panoramas.append(place.panorama)
+        steps, landmark_of_step, spans, kinds = self._directions(points, landmarks, place)
+        photo_of = {self.nodes[n].name: self.nodes[n].photo for n in names if self.nodes[n].name and self.nodes[n].photo}
+        step_photos = [photo_of.get(lm) if lm else None for lm in landmark_of_step]
+        step_photos[-1] = place.photo  # the last step is "Room 874 is on your right": show its door
+        step_metres = [round(sum(math.dist(points[k], points[k + 1]) for k in range(a, b)) * self.metres_per_unit, 1)
+                       for a, b in spans]
         return Route(place_id=place.id, label=place.label, points=points,
                      length_m=round(length * self.metres_per_unit, 1),
-                     steps=self._directions(points, landmarks, place), panoramas=panoramas)
+                     steps=steps, step_photos=step_photos, step_spans=spans, step_kinds=kinds,
+                     step_metres=step_metres, panoramas=panoramas)
 
     def whereabouts(self, place_id: str) -> str | None:
         """Where a place is on the floor, in words: 'inside the Faculty Staff Room · C816', 'on the east side'."""
@@ -157,8 +166,16 @@ class FloorMap(BaseModel):
                     heapq.heappush(queue, (d + w, m))
         return None
 
-    def _directions(self, points: list[Point], landmarks: list[str | None], place: Place) -> list[str]:
+    def _directions(self, points: list[Point], landmarks: list[str | None], place: Place,
+                    ) -> tuple[list[str], list[str | None], list[tuple[int, int]], list[str]]:
+        """The steps and, for each step: the landmark it names (to show that landmark's photo with it), the part of
+        `points` it walks (start and end index), and its kind for the turn arrow (start, enter, left, right,
+        straight, around, arrive-left, arrive-right, arrive-straight)."""
         *walk, door = points
+        seen: list[str | None] = []  # parallel to steps
+        spans: list[tuple[int, int]] = []
+        kinds: list[str] = []
+        span_start = 0
         # once you are in a place ("the middle aisle"), walking on along it doesn't reach it again
         named: list[str | None] = []
         for name in landmarks:
@@ -168,23 +185,30 @@ class FloorMap(BaseModel):
         heading = _FACING[self.facing]
         here = self.start_name
         through = None  # a landmark right next to the start: "go through it" instead of "walk 1 m to it"
-        for i, (direction, length, landmark) in enumerate(legs):
+        for i, (direction, length, landmark, end) in enumerate(legs):
             metres = max(1, round(length * self.metres_per_unit))
             if not steps and length * self.metres_per_unit < 1.5 and i < len(legs) - 1:
                 # a step's worth from the start: only worth naming if the route turns into it
+                # (the next step's span starts at the kiosk, so the walkthrough still covers it)
                 if _turn(direction, legs[i + 1][0]) != "straight":
                     through = landmark or through
                 continue
             turn = _turn(heading, direction)
             first = not steps
+            spans.append((span_start, end))
+            span_start = end
             if first and through:
                 to = f" to {landmark}" if landmark else ""
                 steps.append(f"From {here}, go through {through} and walk about {metres} m{to}.")
+                seen.append(through)  # the entrance is what to look for
+                kinds.append("enter")
                 heading = direction
                 continue
             if first and landmark:
                 # the visitor's facing at the kiosk is a guess, so the first step names where to head instead
                 steps.append(f"From {here}, walk about {metres} m towards {landmark}.")
+                seen.append(landmark)
+                kinds.append("start")
                 heading = direction
                 continue
             if first:
@@ -194,13 +218,18 @@ class FloorMap(BaseModel):
                 lead = "Keep going straight for" if turn == "straight" else f"Turn {turn} and walk"
             to = f" to {landmark}" if landmark else ""
             steps.append(f"{lead} about {metres} m{to}.")
+            seen.append(landmark)
+            kinds.append(turn)
             heading = direction
         spur = (door[0] - walk[-1][0], door[1] - walk[-1][1])
         side = _turn(heading, _unit(spur)) if math.hypot(*spur) > _EPS else "straight"
         where = {"left": "on your left", "right": "on your right", "straight": "straight ahead",
                  "around": "behind you"}[side]
         steps.append(f"{place.spoken_name} is {where}.")
-        return steps
+        seen.append(None)
+        spans.append((len(walk) - 1, len(points) - 1))
+        kinds.append(f"arrive-{'straight' if side == 'around' else side}")
+        return steps, seen, spans, kinds
 
 
 class Route(BaseModel):
@@ -209,6 +238,13 @@ class Route(BaseModel):
     points: list[tuple[float, float]] = Field(description="Polyline in map units, start first, door last.")
     length_m: float
     steps: list[str]
+    step_photos: list[str | None] = Field(default_factory=list,
+                                          description="A photo (file in data/photos/) for each step, or None.")
+    step_spans: list[tuple[int, int]] = Field(default_factory=list,
+                                              description="For each step, the start and end index in points it walks.")
+    step_kinds: list[str] = Field(default_factory=list, description="For each step, its arrow: start, enter, left, "
+                                  "right, straight, around, arrive-left, arrive-right, arrive-straight.")
+    step_metres: list[float] = Field(default_factory=list, description="For each step, how far it walks.")
     panoramas: list[str] = Field(default_factory=list,
                                  description="360-degree photos along the route, start first, destination last.")
 
@@ -224,20 +260,22 @@ def _unit(v: Point) -> Point:
     return (v[0] / n, v[1] / n)
 
 
-def _straight_legs(points: list[Point], landmarks: list[str | None] | None = None) -> list[tuple[Point, float, str | None]]:
-    """Merge consecutive collinear segments: [(unit heading, length, landmark at the leg's end or None), ...]."""
+def _straight_legs(points: list[Point], landmarks: list[str | None] | None = None,
+                   ) -> list[tuple[Point, float, str | None, int]]:
+    """Merge consecutive collinear segments:
+    [(unit heading, length, landmark at the leg's end or None, index of the leg's end in points), ...]."""
     landmarks = landmarks or [None] * len(points)
-    legs: list[tuple[Point, float, str | None]] = []
-    for (a, b), name in zip(zip(points, points[1:]), landmarks[1:]):
+    legs: list[tuple[Point, float, str | None, int]] = []
+    for j, ((a, b), name) in enumerate(zip(zip(points, points[1:]), landmarks[1:])):
         length = math.dist(a, b)
         if length < _EPS:
             continue
         h = _unit((b[0] - a[0], b[1] - a[1]))
         # a leg ends at a named landmark: walking on past it is a new step ("keep going straight ...")
         if legs and legs[-1][2] is None and abs(_cross(legs[-1][0], h)) < 1e-3 and _dot(legs[-1][0], h) > 0:
-            legs[-1] = (legs[-1][0], legs[-1][1] + length, name)
+            legs[-1] = (legs[-1][0], legs[-1][1] + length, name, j + 1)
         else:
-            legs.append((h, length, name))
+            legs.append((h, length, name, j + 1))
     return legs
 
 

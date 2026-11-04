@@ -112,6 +112,8 @@ button:disabled { opacity: .5; cursor: default; }
   font-variant-numeric: tabular-nums; }
 .map .room.hi + .label { fill: var(--navy-ink); }
 .map .label.cabin { font-size: 17px; }
+.map .has-photo { cursor: pointer; }
+.map .room.has-photo:hover { stroke: var(--gold); stroke-width: 3; }
 .map .label.here-label { text-anchor: start; fill: #fff; }
 .map .area { fill: rgba(255, 255, 255, .04); stroke: rgba(255, 255, 255, .35); stroke-width: 1.5; }
 .map .area.kind-area { fill: rgba(197, 162, 90, .07); stroke: var(--gold); stroke-width: 2; }
@@ -125,6 +127,10 @@ button:disabled { opacity: .5; cursor: default; }
 .map .route { fill: none; stroke: var(--gold); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round;
   stroke-dasharray: 2 14; animation: march 1.1s linear infinite; }
 .map .you { fill: var(--here); stroke: #fff; stroke-width: 4; }
+.map .route-ghost { fill: none; stroke: rgba(197, 162, 90, .35); stroke-width: 6; stroke-dasharray: 2 12; stroke-linecap: round; }
+.map .route-done { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+.map .route-now { fill: none; stroke: var(--gold); stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+.map .walker { fill: #4c8dff; stroke: #fff; stroke-width: 5; filter: drop-shadow(0 0 6px rgba(76, 141, 255, .8)); }
 .map .dest { fill: var(--gold); stroke: #fff; stroke-width: 4; }
 @keyframes march { to { stroke-dashoffset: -32; } }
 @media (prefers-reduced-motion: reduce) { .map .route { animation: none; } }
