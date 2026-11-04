@@ -43,6 +43,11 @@ def fake_turn(text: str, session_id: str = "s1") -> dict:
         return {**base, "answer": "I'm sorry, I can't verify a phone number. Please check with the receptionist.",
                 "outcome": "escalated", "escalate": True, "escalate_reason": "not_in_kb", "intent": "contact_info",
                 "options": ["Yes, call the receptionist", "No, thanks"]}
+    if "room 815" in q or "room 999" in q or "room 811" in q:  # a room the knowledge base doesn't hold
+        number = next(w for w in ("815", "999", "811") if w in q)
+        return {**base, "answer": f"I'm sorry, I can't find room {number} in my records. Please check with the "
+                "receptionist at the desk.", "outcome": "escalated", "escalate": True, "escalate_reason": "not_in_kb",
+                "intent": "find_room", "options": ["Talk to the receptionist", "Ask another question"]}
     if "cabin" in q and "sudhakar" in q:  # a person on this floor, room only in the answer text
         return {**base, "answer": "Dr Nisha Varghese's office is room 874, Central Block, Eighth Floor.",
                 "outcome": "answered",

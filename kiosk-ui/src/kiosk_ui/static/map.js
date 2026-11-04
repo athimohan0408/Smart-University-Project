@@ -17,14 +17,17 @@ const FloorMapView = (() => {
     const svg = el("svg", { viewBox: `${vx} ${vy} ${vw} ${vh}`, "aria-hidden": "true" });
     for (const [x, y, w, h] of map.corridor) svg.append(el("rect", { x, y, width: w, height: h, rx: 6, class: "corridor" }));
 
+    // kinds: room (destination), area (e.g. the staff room around the cabins), hall, stairs, facility, reception
     const rects = new Map();
     for (const p of map.places) {
       const [x, y, w, h] = p.rect;
-      const cls = p.kind === "reception" ? "reception" : "room";
-      const r = el("rect", { x, y, width: w, height: h, rx: 6, class: cls });
+      const cls = p.kind === "room" ? "room" : p.kind === "reception" ? "reception" : `area kind-${p.kind}`;
+      const r = el("rect", { x, y, width: w, height: h, rx: p.kind === "room" ? 3 : 2, class: cls });
       r.append(el("title", {}, p.kind === "room" ? `Room ${p.label}` : p.label));
       svg.append(r);
-      svg.append(el("text", { x: x + w / 2, y: y + h / 2, class: p.kind === "room" ? "label" : "label small" }, p.label));
+      const [lx, ly] = p.label_at || [x + w / 2, y + h / 2];
+      const labelCls = p.kind === "room" ? (w < 90 ? "label cabin" : "label") : `label small kind-${p.kind}`;
+      svg.append(el("text", { x: lx, y: ly, class: labelCls }, p.label));
       rects.set(p.id.toLowerCase(), r);
     }
 
@@ -32,7 +35,7 @@ const FloorMapView = (() => {
     svg.append(routeLayer);
     const [sx, sy] = map.start_point;
     svg.append(el("circle", { cx: sx, cy: sy, r: 14, class: "you" }));
-    svg.append(el("text", { x: sx, y: sy - 30, class: "label small" }, "You are here"));
+    svg.append(el("text", { x: sx + 22, y: sy + 1, class: "label small here-label" }, "You are here"));
     container.replaceChildren(svg);
 
     function clear() {

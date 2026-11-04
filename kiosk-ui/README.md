@@ -55,18 +55,32 @@ This module has no secrets.
 
 ## The floor map: `data/floor_map.yaml`
 
-**The current layout is a placeholder.** Room numbers 871-890 come from the faculty sheet, but their positions,
-the corridor and the reception desk are a guess: no floor plan was available. The kiosk shows "Approximate map"
-and the evaluation report says so until the file has `verified: true`.
+The layout comes from the department's **8th Floor Layout Plan** board on the floor (outer rooms 808-815 and
+the MCA Lab, washrooms, water dispensers, lifts, staircases, CCD café, Faculty Lounge, the Faculty Staff Room and the
+open hall), a hand sketch of the inside of the **Faculty Staff Room (C816)** (cabins 871-885, 888 and 890 in two rows
+with passages), and the team's markings on the map: the kiosk stands in the north corridor outside the middle of the
+staff room, and the staff room's **only three ways in** are open passages on its south side, by room 890, between
+888 and 885, and between 884 and 883 (beside the kiosk). There is no door at the east end. 886, 887 and 889 are not
+in the sketch and are not drawn. Like the board, the map is **not to scale** (the staff room is drawn taller so the
+cabins are readable), so distances are approximate; the kiosk says "Not to scale" above the map.
 
-To correct it against the real floor:
+Routes start at the kiosk, enter the staff room through the nearest of the three passages and run along its
+middle aisle ("From the kiosk, go through the Faculty Staff Room entrance between rooms 884 and 883 and walk about
+8 m to the middle aisle. Turn left and walk about 4 m. Room 874 is on your right."). A first step names a landmark
+when it can; otherwise "left/right" assume the visitor faces the kiosk, i.e. north.
 
-1. Edit the coordinates (`viewbox` units: x to the right, y down). `nodes` are walkable points, `edges` join
-   them, each place's `door` meets the corridor at node `via`. `facing` is the direction a visitor at the kiosk
-   faces on the map; it drives "turn left/right".
-2. Set `metres_per_unit` from one measured distance (e.g. reception to the far end of the corridor).
-3. `python -m kiosk_ui.navigation`: every room must be reachable; read the directions to check left/right.
-4. Set `verified: true` and `verified_by: "<name>, <date>"`.
+To confirm or correct it:
+
+1. Walk a few routes with the kiosk's directions. Fix coordinates in the file if a turn or door is wrong
+   (`viewbox` units: x to the right = east, y down = south). `nodes` are walkable points (a `name` makes one a
+   landmark the directions mention), `edges` join them, each place's `door` meets a walkway at node `via`.
+2. `python -m kiosk_ui.navigation`: every room must be reachable; read the directions.
+3. Set `verified: true` and `verified_by: "<name>, <date>"`.
+
+**Who sits where comes from rag-core's faculty sheet, not from the map** (the map only knows room numbers). The
+sketch and the sheet disagree for 873 (sketch: Helen; sheet: Dr Helen K Joy in 885), 877 (Peter; sheet: Dr Deepa V
+Jose, Dr Peter Augustin D in 974), 882 (Nizar Banu; sheet: 607A), 885 (Vaidehi; sheet: Dr Neha Singhal and Dr Helen K
+Joy) and 888 (Rajesh; sheet: Dr Rajesh Kanna R in 322). Check with the department and update the sheet if needed.
 
 ### 360° photos
 
@@ -111,6 +125,13 @@ From rag-core's `data/processed/faculty.json` (read-only, `kb.faculty_json` in s
   answer itself names the room, so the map never shows something the receptionist didn't say.
 - **Clarification buttons**: "Which one do you mean: Dr A or Dr B?" comes without `options`; the names in the
   answer become buttons. Buttons under an earlier answer stop working once the visitor asks something else.
+- **Rooms only the map knows**: "where is room 815?" (808-815, the MCA Lab, cabins not in the faculty sheet) has no
+  answer in rag-core's knowledge base until the campus sheet is filled, so it escalates with `not_in_kb`. When the
+  room is on the floor map, the kiosk answers from the map instead ("Room 815 is here on the 8th floor, on the
+  north-east side of the floor. I've shown you the way on the map."), spoken in the same voice, with the route. It
+  only says where the room is, never what it is or who is in it; rooms on neither stay with the receptionist.
+  The turn is logged with `answered_by: kiosk_floor_map`; rag-core's log still counts it as unanswered, so the
+  dashboard keeps showing which rooms to add to the campus sheet.
 - **Voice**: the answer audio from voice-memory when it sends some (Piper, `tts: backend: piper`, voice file in
   `voice-memory/models/piper/`), otherwise the browser's own speech (silent where the browser has no voices).
 - **Two screens**: the page opens on a welcome screen with the robot large in the middle; it greets the visitor
@@ -151,7 +172,7 @@ and rag-core's evaluations first so their latest numbers are included.
 
 ## Not done yet / needs the team
 
-- **Real floor plan**: the map is a placeholder until someone checks it on the floor (see above).
+- **Floor map**: drawn from the floor-plan board and the staff room sketch; walk the routes once and set `verified: true` (see above). Resolve the five sketch/sheet room differences with the department.
 - **360° photos**: supported; waiting for the photos.
 - **Clarification buttons** come from voice-memory's `options`. rag-core's proposed `clarification_options`
   field would make them more reliable (open proposal in `rag-core/docs/interface.md`).

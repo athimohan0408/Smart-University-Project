@@ -184,14 +184,16 @@ def to_markdown(records: list[dict], settings: Settings, fmap: FloorMap, coverag
 
     lines += ["", "## Floor map", "",
               f"- Map: `{settings.map.file.name}`, {coverage['routable']} routable places, "
-              f"verified: **{'yes, by ' + str(fmap.verified_by) if fmap.verified else 'NO (placeholder layout)'}**."]
+              f"verified on the floor: **{'yes, by ' + str(fmap.verified_by) if fmap.verified else 'not yet'}**"
+              + (f"; drawn from {fmap.source}." if fmap.source else ".")]
     if coverage["source"]:
         lines.append(f"- 8th-floor rooms in the faculty data: {len(coverage['faculty_rooms_on_floor'])}; "
                      f"missing from the map: {', '.join(coverage['missing_from_map']) or 'none'}.")
     else:
         lines.append("- Faculty data not built yet (`cd rag-core; just index`), so room coverage was not checked.")
     if not fmap.verified:
-        lines.append("- Route lengths and left/right directions are only as good as the placeholder coordinates.")
+        lines.append("- The drawings are not to scale: distances are approximate. Walk the routes once, then set "
+                     "`verified: true` in the map file.")
 
     lines += ["", "## Kiosk usage (from the analytics log)", ""]
     ui = read_jsonl(settings.logs.ui_events)

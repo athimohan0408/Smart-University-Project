@@ -60,5 +60,5 @@ def test_run_and_report_end_to_end_with_a_fake_voice_memory(settings, voice_memo
     md = to_markdown(records, settings, fmap, map_coverage(fmap, tmp_path / "missing.json"))
     assert "| turns correct | 75.0% (3/4) |" in md
     assert "| navigation: correct route shown | 100.0% (1/1) |" in md
-    assert "NO (placeholder layout)" in md
+    assert "verified on the floor: **not yet**" in md and "Layout Plan board" in md
     assert "**c turn 2**" in md

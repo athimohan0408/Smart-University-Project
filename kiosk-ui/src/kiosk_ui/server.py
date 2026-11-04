@@ -15,6 +15,7 @@ The browser only ever talks to this server, so voice-memory needs no CORS and ca
 
 from __future__ import annotations
 
+import base64
 import re
 import time
 from contextlib import asynccontextmanager
@@ -30,13 +31,17 @@ from kiosk_ui.analytics import Dashboard, load_and_compute
 from kiosk_ui.config import Settings, get_settings
 from kiosk_ui.directory import FacultyDirectory
 from kiosk_ui.eventlog import EventLog
-from kiosk_ui.greeting import Greeting
+from kiosk_ui.greeting import Greeting, Voice
 from kiosk_ui.navigation import FloorMap, Route
 
 STATIC = Path(__file__).resolve().parent / "static"
 PANORAMAS = "panoramas"  # data/panoramas/ next to the map file: 360-degree photos, served at /panoramas/
 SORRY = ("I'm sorry, I'm having trouble answering right now. "
          "Please speak to the receptionist at the desk.")
+# "where is room 815?" that the knowledge base can't answer, but the floor map can
+_ROOM_NUMBER = re.compile(r"\b(\d{3}[a-z]?)\b", re.IGNORECASE)
+_WHERE = re.compile(r"\b(where|how (do|can) i (get|go|reach|find)|way to|directions?|find|locate|reach)\b", re.IGNORECASE)
+_NOT_WHERE = re.compile(r"\b(phone|number of|email|mail|contact|hours?|free|available|timetable|class(es)?|teach)", re.IGNORECASE)
 
 
 def page(name: str) -> HTMLResponse:
@@ -69,6 +74,7 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
     directory = FacultyDirectory.load(settings.kb.faculty_json)
     log = EventLog(settings.logs.ui_events, settings.kiosk.id)
     greeting = Greeting(settings.kiosk.greeting)
+    voice = Voice(settings.kiosk.speak)
     state: dict[str, httpx.Client] = {}
 
     @asynccontextmanager
@@ -103,6 +109,30 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
                                          timeout=settings.upstream.timeout_s, transport=transport)
         return state["http"]
 
+    def answer_from_map(turn: dict) -> bool:
+        """A room on the floor map that the knowledge base doesn't hold (808-815, the MCA Lab, ...): say where it
+        is, from the department's floor plan, instead of "I can't find it". Only for "where is room N?" questions;
+        it never says what a room is or who is in it."""
+        if not (turn.get("escalate") and turn.get("escalate_reason") == "not_in_kb"):
+            return False
+        asked = f"{turn.get('transcript') or ''} {turn.get('question') or ''}"
+        if _NOT_WHERE.search(asked) or not (turn.get("intent") == "find_room" or _WHERE.search(asked)):
+            return False
+        for number in dict.fromkeys(m.group(1).casefold() for m in _ROOM_NUMBER.finditer(asked)):
+            place = fmap.place(f"room:{number}")
+            if place is None or place.kind != "room" or not place.routable:
+                continue
+            number_shown, _, what = (part.strip() for part in place.label.partition("·"))
+            name = f"Room {number_shown}, the {what}," if what else f"Room {number_shown}"
+            where = (fmap.whereabouts(place.id) or "").replace(" · ", ", ")
+            text = f"{name} is here on the 8th floor, {where}. I've shown you the way on the map."
+            wav = voice.wav(text)
+            turn.update(answer=text, speech=text, audio_wav_base64=base64.b64encode(wav).decode() if wav else None,
+                        outcome="answered", escalate=False, escalate_reason=None, options=[], ticket=None,
+                        room_ids=[place.id], answered_by="kiosk_floor_map", kb_escalate_reason="not_in_kb")
+            return True
+        return False
+
     def finish_turn(session_id: str, call, transcript_hint: str | None, chosen_option: bool) -> TurnOut:
         start = time.perf_counter()
         try:
@@ -117,8 +147,9 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
                     "answer": SORRY, "speech": SORRY, "outcome": "error", "escalate": True,
                     "escalate_reason": "kiosk_upstream_error", "options": [], "room_ids": [], "latency_ms": {}}
             return TurnOut(turn=turn, routes=[], off_map_rooms=[])
-        turn["options"] = directory.clarification_options(turn)
-        turn["room_ids"] = list(dict.fromkeys([*(turn.get("room_ids") or []), *directory.rooms_in_answer(turn)]))
+        if not answer_from_map(turn):
+            turn["options"] = directory.clarification_options(turn)
+            turn["room_ids"] = list(dict.fromkeys([*(turn.get("room_ids") or []), *directory.rooms_in_answer(turn)]))
         routes, off_map = [], []
         for rid in turn["room_ids"]:
             if (r := fmap.route(rid)) is not None:
@@ -133,6 +164,7 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
                    escalate=turn.get("escalate"), escalate_reason=turn.get("escalate_reason"),
                    entities=turn.get("entities") or [], room_ids=turn.get("room_ids") or [],
                    route_shown=bool(routes), options_shown=len(turn.get("options") or []),
+                   answered_by=turn.get("answered_by", "voice-memory"),
                    round_trip_ms=round_trip, upstream_total_ms=(turn.get("latency_ms") or {}).get("total"))
         return TurnOut(turn=turn, routes=routes, off_map_rooms=off_map)
 

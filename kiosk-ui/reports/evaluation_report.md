@@ -1,6 +1,6 @@
 # Final evaluation report
 
-Generated 2026-10-26T23:50:35 by `python -m kiosk_ui.evaluate` from `test_set.jsonl` (26 scenarios, 29 turns).
+Generated 2026-11-03T22:49:15 by `python -m kiosk_ui.evaluate` from `test_set.jsonl` (26 scenarios, 29 turns).
 Every turn went through the kiosk (Portion 3) -> voice-memory (Portion 2) -> rag-core (Portion 1).
 
 ## Summary (end to end)
@@ -14,8 +14,8 @@ Every turn went through the kiosk (Portion 3) -> voice-memory (Portion 2) -> rag
 | escalations that should happen and did | 100.0% (4/4) |
 | answerable questions wrongly escalated | 0.0% (0/21) |
 | all escalations in the run | 5 |
-| response time at the kiosk (typed) | mean 608.5 ms, p50 553.8 ms, p95 1009.4 ms |
-| voice-memory turn total | mean 592.7 ms, p95 993.9 ms |
+| response time at the kiosk (typed) | mean 630.0 ms, p50 593.2 ms, p95 897.4 ms |
+| voice-memory turn total | mean 611.6 ms, p95 874.0 ms |
 
 ## By category
 
@@ -44,13 +44,13 @@ None.
 
 ## Floor map
 
-- Map: `floor_map.yaml`, 20 routable places, verified: **NO (placeholder layout)**.
+- Map: `floor_map.yaml`, 26 routable places, verified on the floor: **not yet**; drawn from the department's 8th Floor Layout Plan board and a hand sketch of the Faculty Staff Room.
 - 8th-floor rooms in the faculty data: 14; missing from the map: none.
-- Route lengths and left/right directions are only as good as the placeholder coordinates.
+- The drawings are not to scale: distances are approximate. Walk the routes once, then set `verified: true` in the map file.
 
 ## Kiosk usage (from the analytics log)
 
-266 kiosk events logged so far (includes this evaluation run).
+585 kiosk events logged so far (includes this evaluation run).
 
 ## Numbers from the other modules
 
