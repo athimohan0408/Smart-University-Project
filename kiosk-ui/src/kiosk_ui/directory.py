@@ -1,6 +1,6 @@
 """Read-only view of rag-core's faculty data, for two things the screen adds to a turn.
 
-1. **Routes for people.** voice-memory's ``room_ids`` only carry rooms the question named ("room 874").
+1. **Routes for people and places.** voice-memory's ``room_ids`` only carry rooms the question named ("room 874").
    For "where is Dr Nisha Varghese?" the room is in the answer text. A faculty member's 8th-floor office
    becomes a route only when the turn was *answered*, the entity is linked (not ambiguous), and the answer
    itself names that room: the map never shows anything the receptionist didn't say.
@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 _TITLE = r"(?:(Dr|Fr|Prof|Mr|Ms|Mrs)\.?\s+)?"
+_PLACE_ROOM = re.compile(r"\bis in room (\d{3,4}[A-Z]?)\b")  # rag-core's place sentence; not "office room 871"
 
 
 @dataclass
@@ -47,6 +48,12 @@ class FacultyDirectory:
             room = self.rooms.get(e.get("canonical_id") or "")
             if room and re.search(rf"\b{re.escape(room)}\b", answer, re.IGNORECASE):
                 rid = f"room:{room.casefold()}"
+                if rid not in out:
+                    out.append(rid)
+        # A place from the dataset's Rooms sheet ("where is the MCA lab?"): rag-core answers "MCA Lab is in room 811".
+        if any(e.get("type") == "facility" and e.get("canonical_id") for e in turn.get("entities") or []):
+            for m in _PLACE_ROOM.finditer(answer):
+                rid = f"room:{m.group(1).casefold()}"
                 if rid not in out:
                     out.append(rid)
         return out

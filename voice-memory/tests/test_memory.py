@@ -167,5 +167,5 @@ def test_real_kb_genders_load(settings):
     if not settings.kb.faculty_json.exists():
         pytest.skip("run `just ingest` in rag-core first")
     kb = KBView.load(settings.kb.faculty_json)
-    assert len(kb.people) == 36
+    assert len(kb.people) == 37  # 36 faculty + the receptionist (dataset of 2026-11)
     assert kb.gender_of("faculty:deepa-v-jose") == "female" and kb.gender_of("faculty:binayak-dutta") == "male"

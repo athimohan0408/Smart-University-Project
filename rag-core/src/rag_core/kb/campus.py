@@ -408,12 +408,102 @@ def write_template(path: Path, facility_kinds: Iterable[str], event_kinds: Itera
         pd.DataFrame(readme[1:], columns=list(readme[0])).to_excel(writer, sheet_name=README_SHEET, index=False)
 
 
+# --------------------------------------------------------------------------- the dataset's "Rooms" sheet
+
+ROOMS_SHEET = "Rooms"
+_ROOM_KINDS = {"classroom": "classroom", "laboratory": "lab", "lab": "lab"}
+_OFFICE_KINDS = {"placement office": "placement_office"}
+
+
+def _person(raw: str | None, names: dict[str, str]) -> str | None:
+    """'Dr SHIVANGI SINGH' -> 'Dr Shivangi Singh' (the KB's display name) when known, else as written."""
+    if not raw:
+        return None
+    return names.get(" ".join(raw.split()).casefold(), " ".join(raw.split()))
+
+
+def load_rooms_sheet(
+    xlsx: Path, kinds: Collection[str], programme_codes: dict[str, str], names: dict[str, str],
+    skipped: list[str], source: str,
+) -> list[Place]:
+    """Rooms from the department's faculty workbook (sheet "Rooms"): classrooms, labs, offices.
+
+    The sheet is part of the department's dataset, so its rows count as verified (``verified_by`` names the
+    sheet). Programmes are mapped to timetable codes ("MSc AIML" -> "MSAIM") so programme questions find them.
+    ``names`` maps a sheet name ("dr shivangi singh") to the KB display name ("Dr Shivangi Singh").
+    """
+    try:
+        df = pd.read_excel(xlsx, sheet_name=ROOMS_SHEET, dtype=object)
+    except ValueError:
+        return []
+    df.columns = [str(c).strip() for c in df.columns]
+    df = df.dropna(how="all")
+    places: list[Place] = []
+    for index, row in df.iterrows():
+        line = int(index) + 2
+        room, name, typ = _cell(row, "Room No"), _cell(row, "Room Name"), (_cell(row, "Type") or "").casefold()
+        where = f"Rooms row {line}" + (f" ({name})" if name else "")
+        kind = _ROOM_KINDS.get(typ) or _OFFICE_KINDS.get((name or "").casefold())
+        if not (room and name and kind and _cell(row, "Block") and _cell(row, "Floor")):
+            skipped.append(f"{where}: needs Room No, Room Name, Block, Floor and a known Type")
+            continue
+        if kind not in kinds:
+            skipped.append(f"{where}: kind {kind!r} is not in the lexicon")
+            continue
+        notes = []
+        if teacher := _person(_cell(row, "Class Teacher"), names):
+            office = _cell(row, "Class Teacher's Office Room")
+            floor = _cell(row, "Class Teacher's Floor")
+            notes.append(f"Class teacher: {teacher}" + (f" (office room {office}" + (f", {floor})" if floor else ")")
+                                                         if office else ""))
+        if staff := _person(_cell(row, "Staff Based Here"), names):
+            notes.append(f"Staff here: {staff}")
+        programme = _cell(row, "Programme")
+        code = programme_codes.get((programme or "").casefold(), programme) if programme else None
+        aliases = [f"room {room}"]
+        if kind == "placement_office":
+            aliases += ["placement office", "placement cell"]
+        places.append(Place(
+            id=f"facility:{kind}:{slugify(name)}", name=name, kind=kind, aliases=aliases,
+            block=_cell(row, "Block"), floor=_cell(row, "Floor"), room=room, programmes=[code] if code else [],
+            notes="; ".join(notes) or None, verified_by=f"{xlsx.name}, sheet {ROOMS_SHEET}", row=line,
+        ))
+    return places
+
+
 def load_campus_from_settings(settings, lexicon=None) -> CampusKB:
+    """The campus sheet plus the "Rooms" sheet of the faculty workbook (both optional)."""
+    from rag_core.kb.glossary import load_glossary
     from rag_core.nlu.gazetteer import load_lexicon
 
     lexicon = lexicon or load_lexicon(settings.paths.entity_lexicon)
     path = settings.paths.campus_xlsx
-    return load_campus(path, set(lexicon.facilities), set(lexicon.events), _display(path))
+    campus = load_campus(path, set(lexicon.facilities), set(lexicon.events), _display(path))
+    glossary = load_glossary(settings.paths.glossary)
+    programme_codes = {code.casefold(): code for code in glossary.programmes}
+    for code, entry in glossary.programmes.items():
+        programme_codes.update({a.casefold(): code for a in entry.aliases})
+    names = _faculty_names(settings.paths.faculty_json)
+    skipped = list(campus.skipped)
+    rooms = load_rooms_sheet(settings.paths.raw_faculty_xlsx, set(lexicon.facilities), programme_codes, names,
+                             skipped, _display(settings.paths.raw_faculty_xlsx))
+    known = {p.id for p in campus.places}
+    places = [*campus.places, *(p for p in rooms if p.id not in known)]
+    return campus.model_copy(update={"places": places, "skipped": skipped})
+
+
+def _faculty_names(faculty_json: Path) -> dict[str, str]:
+    """'dr shivangi singh' -> 'Dr Shivangi Singh', from ingest's faculty.json (empty before `just ingest`)."""
+    import json
+
+    if not faculty_json.exists():
+        return {}
+    out = {}
+    for fac in json.loads(faculty_json.read_text(encoding="utf-8")).get("faculty", []):
+        display = f"{fac['title']} {fac['full_name']}" if fac.get("title") else fac["full_name"]
+        out[display.casefold()] = display
+        out[fac["full_name"].casefold()] = display
+    return out
 
 
 def _display(path: Path) -> str:

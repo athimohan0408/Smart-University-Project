@@ -15,7 +15,7 @@ What this portion delivers:
 
 | deliverable | where |
 |---|---|
-| **The knowledge base**, loaded from `8th_floor_faculty_final_data.xlsx` and extended with classrooms, labs, facilities and events, updatable without retraining | built and served by rag-core: the faculty sheet plus the new campus sheet `rag-core/data/raw/campus_info.xlsx` ([below](#the-knowledge-base-faculty--campus-sheet)) |
+| **The knowledge base**, loaded from `8th_floor_faculty_with_subjects.xlsx` and extended with classrooms, labs, facilities and events, updatable without retraining | built and served by rag-core: the faculty sheet plus the new campus sheet `rag-core/data/raw/campus_info.xlsx` ([below](#the-knowledge-base-faculty--campus-sheet)) |
 | **Voice in / voice out** | `speech/stt.py` (offline Faster-Whisper, biased with KB names), `speech/tts.py` (offline Piper, or the OS voice), `speech/speakable.py`, `speech/audio.py` (kiosk mic + speaker) |
 | **Follow-up -> standalone question** | `memory.py`: `ConversationMemory.rewrite(session_id, text)` |
 | **Escalation message + "contact the receptionist" option** | `handoff.py` |
@@ -129,7 +129,9 @@ has the per-request detail (retrieved facts, grounding issues) for the analytics
 ## The knowledge base: faculty + campus sheet
 
 The KB is built by rag-core, so there is one source of truth:
-1. **Faculty**: `rag-core/data/raw/8th_floor_faculty_final_data.xlsx` (36 faculty), as before.
+1. **Faculty**: `rag-core/data/raw/8th_floor_faculty_with_subjects.xlsx` (36 faculty + the receptionist). Its
+   "Rooms" sheet (classrooms 808-815, the MCA Lab, the Placement Office) is loaded as campus places, and its
+   "Subject Codes" sheet gives every subject's full form.
 2. **Campus** (new): `rag-core/data/raw/campus_info.xlsx`, sheets `Places` (classrooms, labs,
    washrooms, wifi, printing, lift, seminar hall, ...) and `Events` (seminars, workshops, ...). The file in
    the repo is an **empty template with instructions in its README sheet**: there is no verified data for

@@ -41,3 +41,14 @@ def test_clarification_buttons_come_from_the_names_in_the_answer(settings):
 def test_missing_faculty_file_is_harmless(tmp_path):
     d = FacultyDirectory.load(tmp_path / "nope.json")
     assert d.rooms == {} and d.clarification_options({"outcome": "clarification", "answer": "x"}) == []
+
+
+def test_place_answers_route_to_the_room_they_name_not_the_class_teachers_office(tmp_path):
+    d = FacultyDirectory.load(tmp_path / "missing.json")
+    turn = {"outcome": "answered", "escalate": False,
+            "answer": "MCA classroom, semester 5, section A is in room 808, Central Block, Eighth Floor, here on this "
+                      "floor. Class teacher: Dr Shivangi Singh (office room 871, Eighth Floor).",
+            "entities": [{"type": "facility", "text": "classroom", "canonical_id": "facility:classroom"}]}
+    assert d.rooms_in_answer(turn) == ["room:808"]
+    assert d.rooms_in_answer({**turn, "entities": []}) == []  # not a place question
+    assert d.rooms_in_answer({**turn, "outcome": "escalated", "escalate": True}) == []

@@ -204,6 +204,56 @@ _ORGANISER = re.compile(r" Organised by: (.*?)\.(?: |$)")
 _AUDIENCE = re.compile(r" For: (.*?)\.(?: |$)")
 
 
+_QUALIFIER_OK = frozenset({
+    "the", "a", "an", "any", "nearest", "closest", "nearby", "near", "this", "that", "your", "our", "which", "is",
+    "there", "where", "for", "of", "to", "my", "main", "public", "common",
+})
+
+
+def _words(text: str) -> set[str]:
+    return {w.casefold() for w in re.findall(r"[A-Za-z0-9/]+", text)}
+
+
+def _place_qualifier(question: str, mentions: Sequence[EntityMention]) -> str | None:
+    """The visitor's word right before a place-kind word ("AI" in "the AI lab"), unless it is a linked
+    programme/course/room ("MCA lab") or an ordinary word ("the nearest washroom")."""
+    kind_mentions = [m for m in mentions if m.type == EntityType.FACILITY and m.canonical_id
+                     and m.canonical_id.count(":") == 1]
+    if not kind_mentions:
+        return None
+    m = kind_mentions[0]
+    taken = [(x.start, x.end) for x in mentions if x is not m and x.canonical_id
+             and x.type in (EntityType.PROGRAMME, EntityType.COURSE, EntityType.ROOM)]  # "AI" the topic is no room name
+    before = list(re.finditer(r"[A-Za-z0-9]+", question[: m.start]))
+    if not before:
+        return None
+    word = before[-1]
+    if word.group(0).casefold() in _QUALIFIER_OK or any(s <= word.start() < e for s, e in taken):
+        return None
+    return word.group(0)
+
+
+_SEMESTER = re.compile(r"\b(?:sem(?:ester)?\s*(\d{1,2})|(\d{1,2})(?:st|nd|rd|th)?\s*sem(?:ester)?)\b", re.IGNORECASE)
+_SECTION = re.compile(r"\bsec(?:tion)?\s+([a-z])\b", re.IGNORECASE)
+
+
+def _narrow_by_class(question: str, places: Sequence[RetrievedFact]) -> list[RetrievedFact]:
+    """'MCA semester 5 section A classroom' -> only the place whose name says so; no match -> all of them."""
+    sem = _SEMESTER.search(question)
+    sec = _SECTION.search(question)
+    if not (sem or sec):
+        return list(places)
+    def fits(f: RetrievedFact) -> bool:
+        name = f.text.split(" (", 1)[0]
+        ok = True
+        if sem:
+            ok &= bool(re.search(rf"\bsemester {sem.group(1) or sem.group(2)}\b", name, re.IGNORECASE))
+        if sec:
+            ok &= bool(re.search(rf"\bsection {sec.group(1)}\b", name, re.IGNORECASE))
+        return ok
+    return [f for f in places if fits(f)] or list(places)
+
+
 class FactComposer:
     """Deterministic spoken answers from structured facts. ``compose`` returns None when unsure."""
 
@@ -309,10 +359,22 @@ class FactComposer:
         if intent == Intent.EVENT_INFO and events:
             return self._events(question, mentions, events, now)
         if places:
+            qualifier = _place_qualifier(question, mentions)
+            if qualifier:
+                named = [f for f in places if qualifier.casefold() in _words(f.text.split(" (", 1)[0])]
+                if not named:  # "the AI lab" when only the MCA Lab is listed: never answer about another place
+                    kind = next((m.text for m in mentions if m.type == EntityType.FACILITY), "place")
+                    known = and_join([f.text.split(" (", 1)[0] for f in places[: self._cfg.max_names_spoken]])
+                    return self._unanswerable(
+                        f"I'm sorry, I can't find {'an' if qualifier[0].lower() in 'aeiou' else 'a'} {qualifier} {kind} "
+                        f"in my records. The ones I know of: {known}. "
+                        "Please check with the receptionist at the desk.", [f.fact_id for f in places[: self._cfg.max_names_spoken]])
+                places = named
             return self._places(question, places)
         return self._events(question, mentions, events, now) if events else None
 
     def _places(self, question: str, places: Sequence[RetrievedFact]) -> AnswerDraft:
+        places = _narrow_by_class(question, places)
         here = [f for f in places if "(on this floor)." in f.text]
         ordered = [*here, *(f for f in places if f not in here)]
         limit = self._cfg.max_names_spoken

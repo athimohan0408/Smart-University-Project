@@ -58,8 +58,8 @@ def test_every_linked_id_exists_in_the_index(gazetteer, entity_kb):
 def test_glossary_todo_is_never_an_alias(gazetteer):
     for entry in gazetteer.entries:
         assert all(a.text.strip().upper() != "TODO" for a in entry.aliases), entry.canonical_id
-    c_prog = gazetteer.entry("course:c-prog")
-    assert [(a.text, a.source) for a in c_prog.aliases] == [("C PROG", AliasSource.CODE)]
+    msc = gazetteer.entry("programme:msc")  # programme name still TODO in the glossary
+    assert [(a.text, a.source) for a in msc.aliases] == [("MSC", AliasSource.CODE)]
 
 
 def test_room_ids_come_from_room_facts(gazetteer, entity_kb):
@@ -184,10 +184,13 @@ def test_subject_name_links_course_and_research_topic_with_glossary_trust(extrac
     by_type = {m.type: m for m in mentions}
     assert set(by_type) == {EntityType.COURSE, EntityType.TOPIC}
     course = by_type[EntityType.COURSE]
-    assert course.canonical_id == "course:ml" and not course.candidates[0].verified
-    assert course.score == settings.thresholds.unverified_glossary_weight  # ML -> "Machine Learning" is unverified
+    assert course.canonical_id == "course:ml" and course.candidates[0].verified  # from the dataset's Subject Codes
+    assert course.score == 1.0
     assert by_type[EntityType.TOPIC].canonical_id == "topic:machine-learning"
     assert _one(extractor, "who teaches ML", EntityType.COURSE).score == 1.0  # the code itself is literal
+    prog = _one(extractor, "classes of MSc in AI and ML", EntityType.PROGRAMME)  # programme alias: still unverified
+    assert prog.canonical_id == "programme:msaim" and not prog.candidates[0].verified
+    assert prog.score == settings.thresholds.unverified_glossary_weight
 
 
 @pytest.mark.parametrize("text", ["who handles M L", "ML", "machine learnin"])
@@ -202,7 +205,7 @@ def test_deep_learning_is_a_research_area_not_a_course(extractor):
 @pytest.mark.parametrize(
     "text",
     [
-        "who teaches c programming",  # C PROG has no verified name; "programming fundamentals" must not match
+        "who teaches web programming",  # "web" has no counterpart in "C/Java/Python Programming"
         "who is teaching web development",  # "development" must not match "API Development"
         "who teaches learning",  # a subset of "deep learning" is not a match
     ],

@@ -9,6 +9,10 @@ edit `data/kb/glossary.yaml` for names), then `just index` (or `POST /reload-kb`
 > `Events`; the column guide is in its `README` sheet). Fill it in, then `just campus-check` and `just index`.
 > Rows without `Verified By` are not loaded. No retraining is needed.
 
+> **2026-11-05:** the dataset `8th_floor_faculty_with_subjects.xlsx` now gives every subject's full form (all 38
+> codes) and rooms 808-815 (6 classrooms with class teachers, the MCA Lab, the Placement Office). Still missing:
+> other labs (e.g. an AI lab), washrooms and facilities, events, programme names, phone numbers.
+
 ## 1. Classrooms and labs (highest impact)
 
 - **What:** the room for each class: programme + semester + section (+ stream for BSc) + subject -> room number,

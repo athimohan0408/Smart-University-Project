@@ -94,8 +94,11 @@ Tests: `cd kiosk-ui; python -m pytest` (offline). Final evaluation report, with 
 
 ## Notes
 
-- Classrooms, labs, facilities and events are read from `rag-core/data/raw/campus_info.xlsx`. It is an empty
-  template until the department fills it in, so those questions escalate to the receptionist for now (by design).
+- The dataset is `rag-core/data/raw/8th_floor_faculty_with_subjects.xlsx`. After changing it: `cd rag-core`,
+  `just retrain` (subject full forms -> glossary, rebuild the index, retrain the intent classifier).
+- Classrooms 808-815, the MCA Lab and the Placement Office come from that file's "Rooms" sheet. Washrooms,
+  facilities and events would go in `rag-core/data/raw/campus_info.xlsx`, still an empty template, so those
+  questions escalate to the receptionist for now (by design).
   After filling it: `cd rag-core`, `just campus-check`, `just index` (no retraining).
 - Without an `ANTHROPIC_API_KEY` in `rag-core/.env`, answers come from templates; that is expected and works fine.
 - After the first run, put `HF_HUB_OFFLINE=1` in `rag-core/.env` so start-up is faster.
