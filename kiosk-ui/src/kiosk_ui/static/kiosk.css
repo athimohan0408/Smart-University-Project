@@ -264,6 +264,14 @@ body.kiosk { min-height: 100vh; display: flex; flex-direction: column; font-size
 }
 @media (prefers-reduced-motion: reduce) { .nav { animation: none; } }
 
+/* wake on approach: the welcome screen dims while nobody is at the kiosk and brightens when someone walks up */
+.masthead, .intro { transition: filter 1.1s ease; }
+body.asleep .intro, body.asleep .masthead { filter: brightness(.32) saturate(.6); }
+@media (prefers-reduced-motion: reduce) { .masthead, .intro { transition: none; } }
+.wake-badge { display: inline-flex; align-items: center; gap: 7px; font-size: .78rem; font-weight: 600; letter-spacing: .06em;
+  color: var(--ok); }
+.wake-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+
 /* ======================= 4. place cards and "Explore the floor" ======================= */
 .board-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .small-btn { font-size: .85rem; padding: .45em .9em; }

@@ -11,7 +11,9 @@ const INTENT_LABELS = {
 
 const state = { config: null, map: null, mapView: null, session: null, busy: false, idleTimer: null,
   audio: null, panoramas: [], panoIndex: 0, viewer: null, recorder: null, talked: false, voiceInput: null,
-  greeting: null, speaking: null };
+  greeting: null, speaking: null, at: null, atName: null, lastWake: 0 };
+// A sign's QR code opens this page with ?at=<map place id>: this visitor is standing there, not at the kiosk.
+try { state.at = new URLSearchParams(location.search).get("at") || null; } catch { /* old browser: no start point */ }
 
 // End-of-speech detection, the same idea and numbers as voice-memory's own kiosk microphone (audio: in its settings).
 const VAD = { silence_rms: 0.012, end_silence_s: 0.8, start_timeout_s: 8, max_utterance_s: 12 };
@@ -128,8 +130,9 @@ function enterChat({ mic = false, focus = false } = {}) {
     intro.classList.remove("leaving");
     moveRobot("stage-slot");
     Robot.mood("idle");
-    Robot.caption("How can I help you?", "Ask me where a faculty member sits, when you can meet them, "
-      + "who teaches a subject, or how to reach a room.");
+    Robot.caption("How can I help you?", state.atName
+      ? `You are at ${state.atName}. Tell me where you want to go and I'll start from here.`
+      : "Ask me where a faculty member sits, when you can meet them, who teaches a subject, or how to reach a room.");
     const chat = $("chat");
     chat.hidden = false;
     chat.classList.add("arriving");
@@ -175,7 +178,7 @@ async function ask(text, { chosen = false } = {}) {
   Robot.caption("Let me check that for you…", "");
   setBusy(true);
   try {
-    showResult(await api("/api/turn", { session_id: state.session, text, chosen_option: chosen }), thinking);
+    showResult(await api("/api/turn", { session_id: state.session, text, chosen_option: chosen, at: state.at }), thinking);
   } catch (err) {
     thinking.className = "bubble bot escalate";
     thinking.textContent = "Sorry, I couldn't reach the help desk service. Please speak to the receptionist at the desk.";
@@ -241,7 +244,7 @@ function showResult(result, node) {
   else if (t.outcome === "answered") { Robot.caption("Here's what I found.", ""); Robot.hop(); }
   else Robot.caption("Happy to help!", "");
   playAudio(t.audio_wav_base64, t.speech || t.answer, after);
-  showDetails(t, result.routes || [], result.off_map_rooms || []);
+  showDetails(t, result.routes || [], result.off_map_rooms || [], result.position);
 }
 
 // "Was this helpful?" under an answer: one tap, logged for the dashboard (no free text, nothing personal).
@@ -277,14 +280,15 @@ function setEasy(on) {
 }
 
 // ---------- details panel: map, directions, facts ----------
-function showDetails(turn, routes, offMap) {
+function showDetails(turn, routes, offMap, position) {
   const steps = $("steps");
   steps.replaceChildren();
   const route = routes[0];
   if (route) {
     state.mapView.showRoute(route);
     window.map3d?.showRoute(route);
-    $("details-title").textContent = `Route to ${destinationName(route)} · about ${Math.round(route.length_m)} m`;
+    const from = route.origin_name ? ` from ${route.origin_name}` : "";
+    $("details-title").textContent = `Route to ${destinationName(route)}${from} · about ${Math.round(route.length_m)} m`;
     route.steps.forEach((s, i) => {
       const li = document.createElement("li");
       const text = document.createElement("span");
@@ -295,10 +299,19 @@ function showDetails(turn, routes, offMap) {
       if (photo) li.append(photoThumb(photo, last ? lookFor(route) : s, last));
       steps.append(li);
     });
-    setPanoramas(route.panoramas || [], route.destination || `Room ${route.label}`);
+    const where = destinationName(route);
+    setPanoramas(route.panoramas || [], where[0].toUpperCase() + where.slice(1));
     state.route = route;
     $("nav-start").hidden = !(route.step_spans || []).length;
     window.updatePhoneQr?.(route);
+  } else if (position) {
+    state.mapView.showPosition(position.point, position.name, !position.origin_id);
+    window.map3d?.clear();
+    $("details-title").textContent = position.origin_id ? `You are at ${position.name}` : "You are here, at the kiosk";
+    setPanoramas([], "");
+    state.route = null;
+    $("nav-start").hidden = true;
+    window.updatePhoneQr?.(null);
   } else {
     state.mapView.clear();
     window.map3d?.clear();
@@ -740,6 +753,7 @@ async function stopMic(send, notice) {
   setBusy(true);
   try {
     const form = new FormData();
+    if (state.at) form.append("at", state.at);
     form.append("session_id", state.session);
     form.append("audio", encodeWav(r.chunks, rate), "speech.wav");
     const result = await api("/api/turn/audio", form);
@@ -863,6 +877,41 @@ function tick() {
   $("clock").append(time, day);
 }
 
+// ---------- wake on approach ----------
+// While nobody is at the kiosk the welcome screen dims; when someone walks up (seen by the webcam, or just touching
+// the screen) it brightens, the robot waves and greets. Settings: kiosk.wake in config/settings.yaml.
+function setAsleep(on) {
+  state.asleep = on;
+  document.body.classList.toggle("asleep", on);
+}
+
+async function wakeUp() {
+  setAsleep(false);
+  if (!onIntro() || state.talked || state.busy) return; // someone is already using it
+  if (Date.now() - state.lastWake < 30000) return; // greeted a moment ago: don't repeat for the same person
+  state.lastWake = Date.now();
+  const withVoice = !!state.config?.speak && await soundAllowed();
+  showIntro({ withVoice }); // robot steps forward, waves, speaks (or shows "touch to hear me" if sound is still blocked)
+}
+
+function startWake() {
+  const cfg = state.config?.wake;
+  if (!cfg?.enabled || state.at || typeof Wake === "undefined") return; // a phone at a sign is not a kiosk
+  for (const ev of ["pointerdown", "pointermove", "keydown"]) {
+    document.addEventListener(ev, () => { Wake.poke(); setAsleep(false); }, { passive: true });
+  }
+  Wake.start(cfg, {
+    approach: wakeUp,
+    wake: () => setAsleep(false),
+    sleep: () => { if (onIntro() && !state.talked) setAsleep(true); },
+    status: (mode, text) => {
+      const badge = $("wake");
+      badge.hidden = mode !== "camera";
+      badge.title = text;
+    },
+  }).catch(() => {});
+}
+
 // ---------- start ----------
 async function start() {
   tick(); setInterval(tick, 15000);
@@ -876,6 +925,13 @@ async function start() {
   $("map-warning").hidden = state.map.verified;
   $("map-warning").title = "Drawn from the floor-plan board and the staff room layout; distances are approximate.";
   state.session = newSessionId();
+  if (state.at) { // opened from a sign's QR code: say where this visitor is, on the map
+    try {
+      const where = await api(`/api/position?at=${encodeURIComponent(state.at)}`);
+      state.atName = where.name;
+      state.mapView.showPosition(where.point, where.name, !where.origin_id);
+    } catch { state.at = null; } // an unknown place: behave like the kiosk
+  }
 
   $("ask").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -900,8 +956,10 @@ async function start() {
   document.addEventListener("pointermove", followPointer);
   document.addEventListener("pointerdown", followPointer);
   setInterval(() => { // nobody here: wave now and then to invite people over
-    if ((onIntro() || !state.talked) && !state.busy && !state.recorder && !state.speaking && document.visibilityState === "visible") Robot.wave();
+    if ((onIntro() || !state.talked) && !state.busy && !state.recorder && !state.speaking && !state.asleep
+        && document.visibilityState === "visible") Robot.wave();
   }, 25000);
+  startWake();
   $("pano-btn").addEventListener("click", openPanorama);
   $("pano-close").addEventListener("click", closePanorama);
   $("pano-prev").addEventListener("click", () => stepPanorama(-1));

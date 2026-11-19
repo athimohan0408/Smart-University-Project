@@ -56,6 +56,18 @@ the first one
 what is Dr Nisha Varghese's phone number?
 yes
 ```
+More to try (they work in the kiosk screen and in this chat):
+```
+where is Dr Deepa V Jose's cabin and is she free on Friday?        <- two questions in one
+how do I get to room 874 from the lift?                            <- asks which lift; the start point is kept
+and Dr Nisha Varghese's office?                                    <- same start point
+is binayak datta free on friday?                                   <- a misspelled name is fixed
+where is Dr Dipa Josey's cabin?                                    <- "Did you mean Dr Deepa V Jose?"
+I want to leave a message for Dr Deepa V Jose                      <- then answer its questions
+book a meeting with Dr Binayak Dutta tomorrow at 3 pm
+where am I?                                                        <- kiosk screen only
+```
+Messages and meeting requests are written to `voice-memory/logs/requests.jsonl` (personal data, git-ignored).
 Type `new` for a new visitor. Afterwards, see the metrics: `python -m voice_memory.metrics`.
 
 ## 3. Tests for Portion 2

@@ -162,8 +162,9 @@ def compute(rag: list[dict], turns: list[dict], ui: list[dict], *, days: float |
         answered_of = lambda r: not r.get("escalate") and not r.get("clarification")  # noqa: E731
         clarified = sum(1 for r in questions if r.get("clarification"))
     else:
-        questions = [e for e in ui_turns if e.get("outcome") not in ("social", "no_speech", None)]
-        answered_of = lambda r: r.get("outcome") == "answered"  # noqa: E731
+        # a message or meeting request in progress (or called off) is not a question; a sent one is a completed request
+        questions = [e for e in ui_turns if e.get("outcome") not in ("social", "no_speech", "task", "task_cancelled", None)]
+        answered_of = lambda r: r.get("outcome") in ("answered", "task_done")  # noqa: E731
         clarified = sum(1 for r in questions if r.get("outcome") == "clarification")
 
     escalated = [r for r in questions if r.get("escalate")]

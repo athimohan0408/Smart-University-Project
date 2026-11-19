@@ -35,8 +35,10 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 from rapidfuzz import fuzz
 
-from voice_memory.config import MemorySettings
+from voice_memory.config import MemorySettings, NamesSettings
 from voice_memory.kb import KBView
+from voice_memory.names import NameMatcher
+from voice_memory.origins import OriginResolver
 
 FocusKind = Literal["person", "place", "event", "subject"]
 
@@ -54,6 +56,9 @@ _ORDINALS = {
     "second": 1, "2nd": 1, "two": 1, "2": 1, "latter": -1, "last": -1,
     "third": 2, "3rd": 2, "three": 2, "3": 2,
 }
+# words that don't say which option is meant ("the west one", "number two", "I'm at the north")
+_FILLER = frozenset({"the", "a", "an", "ones", "please", "option", "number", "no", "i", "im", "am", "at", "near", "by",
+                     "side", "its", "is", "that", "this", "pick", "choose", "want", "mean", "meant", "said", "go", "it", "one"})
 _YES = re.compile(r"^\s*(yes|yeah|yep|yup|correct|right|exactly|that's (?:him|her|right|the one)|haan|ha|ok(?:ay)?)\b", re.I)
 _NO = re.compile(r"^\s*(no|nope|neither|none|not (?:him|her|them|that one)|wrong)\b", re.I)
 _ELLIPSIS = re.compile(r"^\s*(?:and|also|what about|how about|and what about|then)\s+(?P<rest>.+?)\s*[?.!]*\s*$", re.I)
@@ -83,6 +88,7 @@ class Clarification:
     question: str  # the resolved question that got "which one do you mean?"
     mention: str  # the ambiguous words in it ("Dr George")
     options: list[str]  # display names offered, in the order they were said
+    kind: str = "rag"  # rag: rag-core asked (question already resolved); name / origin: memory asked (re-run on the pick)
 
 
 @dataclass
@@ -95,6 +101,7 @@ class SessionState:
     last_day: str | None = None
     pending: Clarification | None = None
     recent_ids: list[str] = field(default_factory=list)
+    origin: str | None = None  # map place id the visitor said they are starting from; None = the kiosk
 
     def latest(self, *kinds: FocusKind) -> Focus | None:
         found = [self.focus[k] for k in kinds if k in self.focus]
@@ -113,6 +120,10 @@ class Rewrite(BaseModel):
     local_reply: str | None = Field(
         default=None, description="Answer memory gives itself (the visitor said 'no' to 'do you mean X?')."
     )
+    origin: str | None = Field(default=None, description="Map place id the visitor is starting from, or None (the kiosk).")
+    origin_name: str | None = None
+    origin_changed: bool = Field(default=False, description="The visitor named a new start point in this utterance.")
+    options: list[str] = Field(default_factory=list, description="Buttons for a question memory asks itself.")
 
 
 def _sub_word(pattern: str, repl: str, text: str, flags=re.I) -> tuple[str, int]:
@@ -122,10 +133,17 @@ def _sub_word(pattern: str, repl: str, text: str, flags=re.I) -> tuple[str, int]
 class ConversationMemory:
     """Per-session memory. Thread-safe; sessions expire after ``session_idle_s`` of silence."""
 
-    def __init__(self, kb: KBView, cfg: MemorySettings, clock=time.monotonic):
+    def __init__(self, kb: KBView, cfg: MemorySettings, clock=time.monotonic, *, names: NamesSettings | None = None,
+                 origins: OriginResolver | None = None):
         self._kb = kb
         self._cfg = cfg
         self._clock = clock
+        self._matcher = (
+            NameMatcher.from_kb(kb, auto_min=names.auto_min, ask_min=names.ask_min, margin=names.margin,
+                                max_options=names.max_options)
+            if names is not None and names.enabled else None
+        )
+        self._origins = origins or OriginResolver()
         self._sessions: dict[str, SessionState] = {}
         self._lock = threading.Lock()
 
@@ -150,27 +168,94 @@ class ConversationMemory:
     def rewrite(self, session_id: str, utterance: str) -> Rewrite:
         state = self.session(session_id)
         text = re.sub(r"\s+", " ", utterance).strip()
-        rules: list[str] = []
-        unresolved: list[str] = []
+        previous_origin = state.origin
 
         if state.pending is not None:
+            kind = state.pending.kind
             picked = self._clarification_reply(state, text)
             if picked is not None:
-                return self._finish(state, text, picked[0], picked[1], [], picked[2])
+                question, pick_rules, local = picked
+                if local is not None or kind == "rag":
+                    return self._finish(state, text, question, pick_rules, [], local, previous_origin)
+                # memory's own question (which lift? which name?): the picked question goes through the full pipeline
+                return self._rewrite_core(state, text, question, pick_rules, previous_origin)
+        return self._rewrite_core(state, text, text, [], previous_origin)
 
-        question = text
-        if (m := _ELLIPSIS.match(text)) and state.last_question and not _WH.match(m["rest"]):
+    def _rewrite_core(self, state: SessionState, original: str, text: str, rules: list[str],
+                      previous_origin: str | None) -> Rewrite:
+        unresolved: list[str] = []
+
+        # a start point ("from the lift"): taken out of the question and remembered
+        question, origin_rules, local = self._apply_origin(state, text)
+        rules = [*rules, *origin_rules]
+        if local is not None:
+            options = list(state.pending.options) if state.pending and state.pending.kind == "origin" else []
+            return self._finish(state, original, question, rules, [], local, previous_origin, options=options)
+
+        # misheard / misspelled names: fixed quietly, or asked about
+        question, name_rules, local, options = self._fix_names(state, question)
+        rules = [*rules, *name_rules]
+        if local is not None:
+            return self._finish(state, original, question, rules, [], local, previous_origin, options=options)
+
+        if (m := _ELLIPSIS.match(question)) and state.last_question and not _WH.match(m["rest"]):
             swapped = self._swap(state, m["rest"])
             if swapped:
                 question, rule = swapped
                 rules.append(rule)
 
-        if not rules:
+        if not any(r.startswith("ellipsis") or r == "origin:again" for r in rules):
             question = self._resolve_people(state, question, rules, unresolved)
             question = self._resolve_places(state, question, rules, unresolved)
-        return self._finish(state, text, question, rules, unresolved)
+        return self._finish(state, original, question, rules, unresolved, None, previous_origin)
 
-    def _finish(self, state, original, question, rules, unresolved, local_reply=None) -> Rewrite:
+    # -- start point
+
+    def _apply_origin(self, state: SessionState, text: str) -> tuple[str, list[str], str | None]:
+        match = self._origins.find(text)
+        if match is None:
+            return text, [], None
+        rest = self._origins.strip(text, match)
+        if match.kiosk:
+            state.origin = None
+            rule, said = "origin:kiosk", "the kiosk"
+        elif len(match.candidates) == 1:
+            state.origin = match.candidates[0].id
+            rule, said = "origin:set", match.candidates[0].name
+        else:
+            options = [c.name for c in match.candidates]
+            noun = match.candidates[0].aliases[0]
+            state.pending = Clarification(text, match.mention, options, kind="origin")
+            listed = ", ".join(options[:-1]) + f" or {options[-1]}"
+            return text, ["origin:ask"], f"There is more than one {noun} on this floor. Which one are you at: {listed}?"
+        if self._origins.only_a_start(rest):
+            if state.last_question:
+                return state.last_question, [rule, "origin:again"], None
+            return rest, [rule], f"Okay, I'll start from {said}. Where would you like to go?"
+        return rest, [rule], None
+
+    # -- misheard names
+
+    def _fix_names(self, state: SessionState, text: str) -> tuple[str, list[str], str | None, list[str]]:
+        if self._matcher is None:
+            return text, [], None, []
+        fixes = self._matcher.scan(text)
+        if not fixes:
+            return text, [], None, []
+        if asks := [f for f in fixes if not f.replacement]:
+            fix = asks[0]
+            options = list(fix.options)
+            state.pending = Clarification(text, fix.heard, options, kind="name")
+            if len(options) == 1:
+                reply = f"I did not catch that name clearly. Did you mean {options[0]}?"
+            else:
+                listed = ", ".join(options[:-1]) + f" or {options[-1]}"
+                reply = f"I did not catch that name clearly. Which one did you mean: {listed}?"
+            return text, ["name:ask"], reply, options
+        return self._matcher.apply(text, fixes), ["name:corrected"], None, []
+
+    def _finish(self, state, original, question, rules, unresolved, local_reply=None, previous_origin=None,
+                options=()) -> Rewrite:
         question = re.sub(r"\s+", " ", question).strip()
         context: dict[str, Any] = {"session_id": state.session_id}
         if self._cfg.send_prior_entities and state.recent_ids:
@@ -179,7 +264,9 @@ class ConversationMemory:
             context["last_entities"] = [f.canonical_id]
         return Rewrite(
             original=original, question=question, changed=question != original, rules=rules,
-            unresolved=unresolved, context=context, local_reply=local_reply,
+            unresolved=unresolved, context=context, local_reply=local_reply, options=list(options),
+            origin=state.origin, origin_name=self._origins.name_of(state.origin) if state.origin else None,
+            origin_changed=state.origin != previous_origin,
         )
 
     # -- people
@@ -302,6 +389,10 @@ class ConversationMemory:
         if old is None or not old.said_as or old.said_as.casefold() not in prev.casefold():
             return None
         new_text = rest.strip().rstrip("?.! ")
+        if kind == "person" and re.search(re.escape(old.said_as) + r"(?:'s|’s)\b", prev, re.IGNORECASE):
+            # "and Dr Sridevi's office?" after "... Dr Nisha's office?": the name replaces the name, not the noun after it
+            if possessive := re.match(r"(?P<name>.+?)(?:'s|’s)\b", new_text):
+                new_text = possessive["name"]
         new = re.sub(re.escape(old.said_as), new_text.replace("\\", ""), prev, count=1, flags=re.I)
         return new, f"ellipsis:{kind}"
 
@@ -319,16 +410,19 @@ class ConversationMemory:
             )
         if len(options) == 1 and _YES.match(low):
             choice = options[0]
-        if choice is None:
-            for word in re.findall(r"[a-z0-9]+", low):
-                if word in _ORDINALS and len(low.split()) <= 4:
+        words = re.findall(r"[a-z0-9]+", low)
+        content = [w for w in words if w not in _FILLER and w not in _ORDINALS]
+        if choice is None and not content:  # "the first one", "second", "1": a position, with nothing else said
+            for word in words:
+                if word in _ORDINALS and len(words) <= 4:
                     idx = _ORDINALS[word]
                     if -len(options) <= idx < len(options):
                         choice = options[idx]
                         break
         if choice is None:
+            core = " ".join(content) or low  # "the west one" -> "west": the words that say WHICH one
             scored = [
-                (max(fuzz.partial_ratio(low, o.casefold()), fuzz.token_set_ratio(low, o.casefold())), o) for o in options
+                (max(fuzz.partial_ratio(core, o.casefold()), fuzz.token_set_ratio(core, o.casefold())), o) for o in options
             ]
             scored.sort(reverse=True)
             if scored and scored[0][0] >= self._cfg.option_match_min and (
@@ -346,6 +440,38 @@ class ConversationMemory:
         else:
             q = f"{q.rstrip('?. ')} ({choice})?"
         return q, ["clarification:picked"], None
+
+    # ----------------------------------------------------------------------- small public helpers
+
+    @property
+    def matcher(self) -> NameMatcher | None:
+        return self._matcher
+
+    def focus_person_id(self, session_id: str) -> str | None:
+        """canonical id of the person last discussed in this session, or None."""
+        focus = self.session(session_id).focus.get("person")
+        return focus.canonical_id if focus else None
+
+    def pending_clarification(self, session_id: str) -> bool:
+        return self.session(session_id).pending is not None
+
+    def origin_of(self, session_id: str) -> tuple[str, str] | None:
+        """(map place id, spoken name) the visitor said they are starting from, or None (the kiosk)."""
+        origin = self.session(session_id).origin
+        return (origin, self._origins.name_of(origin)) if origin else None
+
+    def remember_person(self, session_id: str, canonical_id: str) -> None:
+        """Make this person the one "she"/"he"/"her office" means next (after a message or meeting request)."""
+        state = self.session(session_id)
+        with self._lock:
+            state.turn += 1
+            state.updated = self._clock()
+            state.focus["person"] = Focus(
+                kind="person", canonical_id=canonical_id, name=self._kb.name_of(canonical_id),
+                said_as=self._kb.name_of(canonical_id), turn=state.turn, gender=self._kb.gender_of(canonical_id),
+            )
+            if canonical_id not in state.recent_ids:
+                state.recent_ids.append(canonical_id)
 
     # ----------------------------------------------------------------------- observe
 

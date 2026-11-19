@@ -159,6 +159,7 @@ export function create(container, map, { onPlace } = {}) {
     stepRoute = null;
     nowTube = null;
     camGoal = targetGoal = null;
+    pin.position.set(map.start_point[0], 0, map.start_point[1]);  // back at the kiosk (or this page's start)
     if (highlighted) { highlighted.material.color.setHex(highlighted.userData.color); highlighted.material.emissive?.setHex(0); }
     highlighted = null;
     controls.autoRotate = !matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -168,6 +169,7 @@ export function create(container, map, { onPlace } = {}) {
     clear();
     if (!route) return;
     const pts = route.points.map(([x, z]) => new THREE.Vector3(x, 8, z));
+    pin.position.set(route.points[0][0], 0, route.points[0][1]);  // "You are here" where the route starts
     const curve = new THREE.CurvePath();
     for (let i = 1; i < pts.length; i++) curve.add(new THREE.LineCurve3(pts[i - 1], pts[i]));
     path = curve;
@@ -198,6 +200,7 @@ export function create(container, map, { onPlace } = {}) {
     if (stepRoute !== route) {
       clear();
       stepRoute = route;
+      pin.position.set(route.points[0][0], 0, route.points[0][1]);
       const all = curveOf(route.points.map(([x, z]) => new THREE.Vector3(x, 8, z)));
       if (all) routeGroup.add(tubeOf(all, 4, ghostMat));
       const [ex, ez] = route.points[route.points.length - 1];

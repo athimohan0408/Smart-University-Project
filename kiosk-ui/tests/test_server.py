@@ -171,7 +171,7 @@ def test_kiosk_page_has_the_walkthrough(client):
 
 def test_routes_from_a_lift_and_the_nearest_washroom(client):
     r = client.get("/api/route/room:874", params={"from": "lift-north"}).json()
-    assert r["steps"][0].startswith("Step out of the north lift") and r["start_id"] == "lift-north"
+    assert r["steps"][0].startswith("With the north lift behind you") and r["start_id"] == "lift-north"
     assert client.get("/api/route/room:874", params={"from": "rooftop"}).status_code == 404
     near = client.get("/api/nearest/gents", params={"from": "lift-west"}).json()
     assert near["place_id"] == "facility:gents-south"

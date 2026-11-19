@@ -35,6 +35,7 @@ class KBView:
     people: dict[str, Person] = field(default_factory=dict)
     names: dict[str, str] = field(default_factory=dict)  # any canonical id -> what to call it
     _name_index: dict[str, set[str]] = field(default_factory=dict)  # name word -> faculty ids
+    _person_words: dict[str, set[str]] = field(default_factory=dict)  # faculty id -> every word that can name them
 
     @classmethod
     def load(cls, faculty_json: Path, gazetteer: Path | None = None) -> KBView:
@@ -54,7 +55,9 @@ class KBView:
         words = tuple(w for w in norm_words(name) if w not in {"dr", "fr", "prof"})
         self.people[canonical_id] = Person(canonical_id, name, gender, words)
         self.names[canonical_id] = name
-        for w in {*words, *(x for a in aliases for x in norm_words(a))}:
+        everything = {*words, *(x for a in aliases for x in norm_words(a))}
+        self._person_words[canonical_id] = {w for w in everything if len(w) > 2}
+        for w in everything:
             if len(w) > 2 and w not in _COMMON:
                 self._name_index.setdefault(w, set()).add(canonical_id)
 
@@ -86,3 +89,16 @@ class KBView:
         """Faculty whose full display name appears in the text (for parsing clarification questions)."""
         found = [(text.find(p.name), p) for p in self.people.values() if p.name in text]
         return [p for _, p in sorted(found, key=lambda pair: pair[0])]
+
+    def find_people(self, text: str) -> list[Person]:
+        """Who does the text name? The best matches only: one person when it is clear, several when they tie
+        ("Dr George" -> both Georges), none when no word of any name is in the text. Initials don't count."""
+        words = set(norm_words(text))
+        best = 0
+        scored: list[tuple[int, Person]] = []
+        for cid, person in self.people.items():
+            hits = len(words & self._person_words.get(cid, set()))
+            if hits:
+                scored.append((hits, person))
+                best = max(best, hits)
+        return [p for hits, p in scored if hits == best]

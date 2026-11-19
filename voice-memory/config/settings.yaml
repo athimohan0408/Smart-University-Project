@@ -23,6 +23,56 @@ memory:
   send_prior_entities: true    # lets rag-core break name ties ("Dr George") with people already discussed
   max_prior_entities: 5
   option_match_min: 80         # rapidfuzz score to accept a spoken pick ("Jossy") among clarification options
+  max_parts: 3                 # "where is Dr X and is she free on Friday?": most questions answered from one utterance
+  # Places a visitor can start from ("from the lift", "from room 874", "I'm at the north staircase"). Read from the
+  # kiosk's floor map (names, directions and aliases of its places). Empty or missing file: the feature is off.
+  origins_file: ../kiosk-ui/data/floor_map.yaml
+
+names:
+  # Misheard / misspelled names ("Dipa Josey", "Binayak Datta") are matched to the faculty sheet by spelling AND sound.
+  enabled: true
+  auto_min: 88                 # similarity (0-100) at which a name is fixed quietly, if one person is clearly meant
+  ask_min: 80                  # from here up to auto_min: ask "Did you mean Dr X?" instead of guessing
+  margin: 8                    # the best person must beat the next person by this much to be fixed without asking
+  max_options: 3               # buttons offered when several people sound alike
+
+tasks:
+  # "Leave a message for Dr X" and "book a meeting with Dr X": a short question-by-question conversation that ends
+  # with a REQUEST written to `requests` (and the receptionist webhook, if set). Nothing is promised to the visitor:
+  # the faculty member confirms a meeting. The visitor's name and contact are kept only for that request.
+  enabled: true
+  idle_s: 120                  # forget a half-finished request after this much silence
+  max_retries: 2               # asks again this many times for a day / time / contact it can't read, then gives up
+  requests: logs/requests.jsonl
+  webhook_timeout_s: 3
+  # PROVISIONAL until the department confirms: the days and hours a meeting can be requested for (the sheet's
+  # timetable runs Monday-Saturday, 07:30-17:00; the same window rag-core uses for times without am/pm).
+  meeting_days: [monday, tuesday, wednesday, thursday, friday, saturday]
+  meeting_earliest: "07:30"
+  meeting_latest: "17:00"
+  prompts:
+    ask_recipient_message: "Sure, I can take a message. Who is it for?"
+    ask_recipient_meeting: "Sure, I can request a meeting. Who would you like to meet?"
+    which_one: "Which one do you mean: {options}?"
+    ask_message: "What would you like me to tell {who}?"
+    ask_visitor_name: "May I have your name, so {who} knows who it is from?"
+    ask_contact: "How can {who} reach you? Say a phone number or an email address, or say skip."
+    ask_day: "Which day would you like to meet {who}?"
+    ask_time: "What time on {day} would suit you?"
+    ask_ampm: "Is that {am} or {pm}?"
+    ask_purpose: "What is the meeting about? You can say skip."
+    bad_day: "{reason} Which day would you like?"
+    bad_time: "{reason} What time would suit you?"
+    bad_contact: "That doesn't look like a phone number or an email address. Say it again, or say skip."
+    confirm_message: "Let me check: a message for {who}: \"{text}\", from {visitor}{contact}. Shall I send it?"
+    confirm_meeting: "Let me check: a meeting request for {who} on {when}{purpose}, from {visitor}{contact}. Shall I send it?"
+    sent_message: "Done. I've left your message for {who}. They will see it when they are back at their desk."
+    sent_meeting: "Done. I've sent your meeting request to {who}. They will confirm the time with you; nothing is booked until they do."
+    cancelled: "No problem, I've cancelled that. You can ask me something else."
+    gave_up: "I'm sorry, I couldn't get that. I've stopped the request; the receptionist at the desk can help you."
+    option_yes: "Yes, send it"
+    option_no: "No, cancel"
+    option_skip: "Skip"
 
 handoff:
   # Offered on screen and by voice whenever rag-core escalates.

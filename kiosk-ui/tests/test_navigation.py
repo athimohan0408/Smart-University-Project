@@ -163,31 +163,32 @@ def test_every_destination_is_reachable_from_every_lift_and_staircase(fmap, star
 
 def test_out_of_a_lift_the_first_step_says_which_way_to_turn(fmap):
     steps = fmap.route("room:874", "lift-north").steps
-    assert steps[0] == "Step out of the north lift, turn left and walk about 6 m."
+    assert steps[0] == "With the north lift behind you, turn left and walk about 6 m."
     assert steps[-1] == "Room 874 is on your right."
     assert any("entrance C816" in s for s in steps)
     assert fmap.route("room:874", "lift-north").step_photos[0] == "lifts.jpg"  # "where you start"
     west = fmap.route("room:808", "lift-west").steps
-    assert west[0] == "Step out of the west lift, turn right and walk about 16 m."
+    assert west[0] == "With the west lift behind you, turn right and walk about 16 m."
 
 
 def test_the_kiosk_is_still_the_default_start(fmap):
     assert fmap.route("room:874").steps == fmap.route("room:874", "kiosk").steps
     assert fmap.route("room:874").start_id == "kiosk"
-    assert fmap.route("room:874", "the moon") is None
+    assert fmap.origin("the moon") is None
+    assert fmap.route("room:874", "the moon").steps == fmap.route("room:874").steps  # unknown start: the kiosk
 
 
 def test_lifts_stairs_and_washrooms_are_destinations(fmap):
     r = fmap.route("facility:stairs-north")
     assert r.steps[-1] == "The north staircase is on your left."
     assert sum("north staircase" in s for s in r.steps) == 1  # not "... to the north staircase. The north staircase ..."
-    assert fmap.route("facility:gents-south").destination == "The gents washroom"
+    assert fmap.route("facility:gents-south").destination == "the gents washroom"  # mid-sentence
     assert fmap.route("facility:faculty-washroom") is None  # staff only: no route
 
 
 def test_nearest(fmap):
     assert fmap.nearest("water", "lift-west").place_id == "facility:water-west"
-    assert fmap.nearest("gents", "lift-north").place_id == "facility:gents-north"
+    assert fmap.nearest("gents", "lift-north").place_id == "facility:gents-south"  # gents-north: no entrance yet
     assert fmap.nearest("gents", "lift-west").place_id == "facility:gents-south"
     # the lift you are standing at doesn't count
     assert fmap.nearest("lift", "lift-north").place_id != "facility:lift-north"

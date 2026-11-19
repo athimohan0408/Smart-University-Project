@@ -3,8 +3,11 @@
 Run: ``python -m kiosk_ui`` (api.host:api.port, default 127.0.0.1:8002), with voice-memory's API running.
 
 - ``GET  /``                 kiosk screen          ``GET /dashboard``  analytics dashboard
-- ``POST /api/turn``         ``{"session_id", "text", "chosen_option"?}`` -> ``{"turn": TurnResult, "routes": [...]}``
-- ``POST /api/turn/audio``   multipart ``session_id`` + ``audio`` (16-bit PCM WAV) -> same as /api/turn
+- ``POST /api/turn``         ``{"session_id", "text", "chosen_option"?, "at"?}`` -> ``{"turn": TurnResult, "routes": [...],
+                             "position"?}``. ``at`` is a map place id ("facility:lift-north") from a sign's QR code: routes then
+                             start there unless the visitor says otherwise, and "Where am I?" answers from it.
+- ``POST /api/turn/audio``   multipart ``session_id`` + ``audio`` (16-bit PCM WAV) [+ ``at``] -> same as /api/turn
+- ``GET  /api/position``     ``?at=facility:lift-north`` -> where that is, in words, and what is close by
 - ``POST /api/receptionist`` ``{"session_id"}``: the "Talk to the receptionist" button
 - ``POST /api/session/reset`` ``{"session_id"}``: a new visitor
 - ``GET  /api/map?from=``    floor map for drawing   ``GET /api/route/{place_id}?from=``  one route
@@ -45,7 +48,7 @@ from kiosk_ui.config import Settings, get_settings
 from kiosk_ui.directory import FacultyDirectory
 from kiosk_ui.eventlog import EventLog
 from kiosk_ui.greeting import Greeting, Voice
-from kiosk_ui.navigation import NEAREST, FloorMap, Route
+from kiosk_ui.navigation import NEAREST, FloorMap, Position, Route
 from kiosk_ui.places import PlaceBook, PlaceCard, PlaceSummary
 
 STATIC = Path(__file__).resolve().parent / "static"
@@ -56,6 +59,18 @@ SORRY = ("I'm sorry, I'm having trouble answering right now. "
 # "where is room 815?" that the knowledge base can't answer, but the floor map can
 _ROOM_NUMBER = re.compile(r"\b(\d{3}[a-z]?)\b", re.IGNORECASE)
 _WHERE = re.compile(r"\b(where|how (do|can) i (get|go|reach|find)|way to|directions?|find|locate|reach)\b", re.IGNORECASE)
+# "Where am I?": answered from the floor map, whatever the receptionist service made of it
+_WHERE_AM_I = re.compile(
+    r"\bwhere\s+(?:am\s+i|are\s+we|exactly\s+am\s+i)\b|\bwhere\s+is\s+this(?:\s+place)?\s*[?.!]*$|"
+    r"\bwhat\s+(?:floor|place|block)\s+(?:is\s+this|am\s+i\s+on)\b|\bwhich\s+(?:floor|block)\s+(?:is\s+this|am\s+i\s+on)\b|"
+    r"\bi(?:'m|\s+am)\s+lost\b|\bi\s+(?:don'?t|do\s+not)\s+know\s+where\s+i\s+am\b",
+    re.IGNORECASE,
+)
+_REQUEST_DIALOGUE = "[message or meeting request]"  # what the event log keeps of a "leave a message" / "book a meeting" turn
+# a question about WHERE a place is, as opposed to what it is or when it is open
+_LOCATION = re.compile(r"\b(where|how\s+(?:do|can|to)\s+(?:i\s+)?(?:get|go|reach|find)|way\s+to|directions?|find|locate|reach|"
+                       r"nearest|closest|near|is\s+there|are\s+there|take\s+me|guide\s+me|show\s+me)\b", re.IGNORECASE)
+_WASHROOM = re.compile(r"\b(washrooms?|restrooms?|toilets?|bathrooms?|loo)\b", re.IGNORECASE)
 _NOT_WHERE = re.compile(r"\b(phone|number of|email|mail|contact|hours?|free|available|timetable|class(es)?|teach)", re.IGNORECASE)
 
 
@@ -83,6 +98,7 @@ class TurnIn(BaseModel):
     session_id: str = Field(min_length=1)
     text: str = Field(min_length=1)
     chosen_option: bool = False  # the visitor tapped a clarification button instead of typing/speaking
+    at: str | None = None  # a map place id from a sign's QR code: where this visitor is standing
 
 
 class SessionIn(BaseModel):
@@ -101,6 +117,7 @@ class TurnOut(BaseModel):
     off_map_rooms: list[str] = Field(description="room ids in the answer that aren't on this floor's map")
     notices: list[str] = Field(default_factory=list, description="the office's notes on this answer: a person on "
                                "leave, a closed room")
+    position: Position | None = Field(default=None, description="Set for 'Where am I?': where they are, to mark on the map.")
 
 
 def create_app(settings: Settings | None = None, *, transport: httpx.BaseTransport | None = None,
@@ -187,17 +204,68 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
                 out.append(f"{r.destination or r.label} is closed{until}: {c.reason}.")
         return list(dict.fromkeys(out))
 
-    def answer_from_map(turn: dict) -> bool:
-        """A room on the floor map that the knowledge base doesn't hold (808-815, the MCA Lab, ...): say where it
-        is, from the department's floor plan, instead of "I can't find it". Only for "where is room N?" questions;
-        it never says what a room is or who is in it."""
+    def say(turn: dict, text: str, **fields) -> bool:
+        wav = voice.wav(text)
+        turn.update(answer=text, speech=text, audio_wav_base64=base64.b64encode(wav).decode() if wav else None,
+                    escalate=False, escalate_reason=None, ticket=None, answered_by="kiosk_floor_map",
+                    kb_escalate_reason="not_in_kb", **{"outcome": "answered", "options": [], "room_ids": [], **fields})
+        return True
+
+    def answer_facility(turn: dict, asked: str, origin_id: str | None) -> bool:
+        """"Where is the lift / the washroom / drinking water / the staircase / the CCD café?": the nearest one, from the
+        floor plan, with a route. Only where a place is; whether it is open, working or free is never claimed."""
+        found = fmap.find_by_name(asked)
+        found = [p for p in found if p.kind != "room"]
+        if not found:
+            if _WASHROOM.search(asked):  # a washroom, but whose? ask, don't guess
+                return say(turn, "Which washroom do you need: the Gents or the Ladies?", outcome="clarification",
+                           options=["Where is the Gents washroom?", "Where is the Ladies washroom?"])
+            return False
+        start_place = fmap.origin_place(origin_id)
+        here = start_place.origin_name if start_place else fmap.start_name
+        options = []
+        for place in found:
+            if start_place is not None and place.id == start_place.id:
+                continue  # they are standing at it
+            if (r := fmap.route(place.id, origin_id)) is not None:
+                options.append((r.length_m, place, r))
+        if not options:
+            place = found[0]
+            where = (fmap.whereabouts(place.id) or "").replace(" · ", ", ")
+            if start_place is not None and place.id == start_place.id:
+                return say(turn, f"You are at {here}.")
+            return say(turn, f"{place.spoken_name} is here on the 8th floor, {where}. "
+                             "I can't draw the way there on the map yet.")
+        length, place, route = min(options, key=lambda o: o[0])
+        where = (fmap.whereabouts(place.id) or "").replace(" · ", ", ")
+        others = [p.origin_name for p in found if p.id != place.id and p.id != (start_place.id if start_place else None)]
+        distance = f"about {max(1, round(length))} m from {here}, {where}. I've shown you the way on the map."
+        if len(found) == 1:  # only one on the floor: no "nearest"
+            text = f"{place.spoken_name} is {distance}"
+        else:
+            text = f"The nearest {place.aliases[0] if place.aliases else place.label.lower()} is {place.origin_name}, {distance}"
+        if others:
+            text += " This floor also has " + (", ".join(others[:-1]) + " and " + others[-1] if len(others) > 1 else others[0]) + "."
+        return say(turn, text, room_ids=[place.id])
+
+    def answer_from_map(turn: dict, origin_id: str | None = None) -> bool:
+        """A place on the floor map that the knowledge base doesn't hold (rooms 808-815, the MCA Lab, a lift, a washroom,
+        drinking water ...): say where it is, from the department's floor plan, instead of "I can't find it". Only for
+        "where is ...?" questions; it never says what a room is or who is in it."""
+        if turn.get("parts"):  # several questions in one reply: replacing it would drop the other answers
+            return False
         if not (turn.get("escalate") and turn.get("escalate_reason") == "not_in_kb"):
             return False
         asked = f"{turn.get('transcript') or ''} {turn.get('question') or ''}"
-        if _NOT_WHERE.search(asked) or not (turn.get("intent") == "find_room" or _WHERE.search(asked)):
+        if _NOT_WHERE.search(asked):
             return False
-        for number in dict.fromkeys(m.group(1).casefold() for m in _ROOM_NUMBER.finditer(asked)):
-            place = fmap.place(f"room:{number}")
+        if _LOCATION.search(asked) and answer_facility(turn, asked, origin_id):
+            return True
+        if not (turn.get("intent") == "find_room" or _WHERE.search(asked)):
+            return False
+        named = [p for p in fmap.find_by_name(asked) if p.kind == "room"]  # "the MCA lab"
+        numbered = (fmap.place(f"room:{n}") for n in dict.fromkeys(m.group(1).casefold() for m in _ROOM_NUMBER.finditer(asked)))
+        for place in [*named, *numbered]:
             if place is None or place.kind != "room" or not place.routable:
                 continue
             number_shown, _, what = (part.strip() for part in place.label.partition("·"))
@@ -211,7 +279,26 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
             return True
         return False
 
-    def finish_turn(session_id: str, call, transcript_hint: str | None, chosen_option: bool) -> TurnOut:
+    def answer_from_position(turn: dict, origin_id: str | None) -> Position | None:
+        """"Where am I?": say where the kiosk (or the place they told us they are at) is, from the map. Never a guess:
+        the position is the kiosk's own, or the one the visitor named."""
+        asked = f"{turn.get('transcript') or ''} {turn.get('question') or ''}"
+        if not _WHERE_AM_I.search(asked) or str(turn.get("outcome", "")).startswith("task"):
+            return None
+        position = fmap.position(origin_id)
+        text = position.text
+        if origin_id is None:
+            text += " Tell me where you would like to go and I will show you the way from here."
+        else:
+            text += " Tell me where you would like to go and I will show you the way from there."
+        wav = voice.wav(text)
+        turn.update(answer=text, speech=text, audio_wav_base64=base64.b64encode(wav).decode() if wav else None,
+                    outcome="answered", escalate=False, escalate_reason=None, options=[], ticket=None, room_ids=[],
+                    answered_by="kiosk_position")
+        return position
+
+    def finish_turn(session_id: str, call, transcript_hint: str | None, chosen_option: bool,
+                    at: str | None = None) -> TurnOut:
         start = time.perf_counter()
         try:
             response = call()
@@ -225,26 +312,34 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
                     "answer": SORRY, "speech": SORRY, "outcome": "error", "escalate": True,
                     "escalate_reason": "kiosk_upstream_error", "options": [], "room_ids": [], "latency_ms": {}}
             return TurnOut(turn=turn, routes=[], off_map_rooms=[])
-        if not answer_from_map(turn):
+        # where the visitor starts: what they told the receptionist ("from the lift"), else the sign they scanned
+        start_place = fmap.origin_place((turn.get("origin") or {}).get("place_id")) or fmap.origin_place(at)
+        origin_id = start_place.id if start_place else None
+        position = answer_from_position(turn, origin_id)
+        if position is None and not answer_from_map(turn, origin_id):
             turn["options"] = kb.directory.clarification_options(turn)
             turn["room_ids"] = list(dict.fromkeys([*(turn.get("room_ids") or []), *kb.directory.rooms_in_answer(turn)]))
         routes, off_map = [], []
         for rid in turn["room_ids"]:
-            if (r := fmap.route(rid)) is not None:
+            if (r := fmap.route(rid, origin_id)) is not None:
                 routes.append(dress(r))
             else:
                 off_map.append(rid)
         round_trip = round((time.perf_counter() - start) * 1000, 1)
         if chosen_option:
             log.append("option_chosen", session_id, option=transcript_hint)
-        log.append("turn", session_id, turn_id=turn.get("turn_id"), question=turn.get("transcript"),
-                   resolved_question=turn.get("question"), outcome=turn.get("outcome"), intent=turn.get("intent"),
+        in_dialogue = str(turn.get("outcome", "")).startswith("task")  # names, messages, contacts: never logged here
+        log.append("turn", session_id, turn_id=turn.get("turn_id"),
+                   question=_REQUEST_DIALOGUE if in_dialogue else turn.get("transcript"),
+                   resolved_question=_REQUEST_DIALOGUE if in_dialogue else turn.get("question"),
+                   outcome=turn.get("outcome"), intent=turn.get("intent"), origin=origin_id,
                    escalate=turn.get("escalate"), escalate_reason=turn.get("escalate_reason"),
                    entities=turn.get("entities") or [], room_ids=turn.get("room_ids") or [],
                    route_shown=bool(routes), options_shown=len(turn.get("options") or []),
                    answered_by=turn.get("answered_by", "voice-memory"),
                    round_trip_ms=round_trip, upstream_total_ms=(turn.get("latency_ms") or {}).get("total"))
-        return TurnOut(turn=turn, routes=routes, off_map_rooms=off_map, notices=notices(turn, routes))
+        return TurnOut(turn=turn, routes=routes, off_map_rooms=off_map, position=position,
+                       notices=notices(turn, routes))
 
     @app.get("/", include_in_schema=False)
     def kiosk_page() -> HTMLResponse:
@@ -276,7 +371,8 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
     @app.get("/api/config")
     def config() -> dict:
         return {"kiosk_id": settings.kiosk.id, "idle_reset_s": settings.kiosk.idle_reset_s,
-                "speak": settings.kiosk.speak, "map_verified": fmap.verified, "public_url": public_url()}
+                "speak": settings.kiosk.speak, "map_verified": fmap.verified, "public_url": public_url(),
+                "wake": settings.kiosk.wake.model_dump()}
 
     def public_url() -> str | None:
         """Where phones reach this server: kiosk.public_url when set; otherwise, when the server listens on the
@@ -308,14 +404,16 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
     @app.post("/api/turn", response_model=TurnOut)
     def turn(body: TurnIn) -> TurnOut:
         payload = {"session_id": body.session_id, "text": body.text, "speak": settings.kiosk.speak}
-        return finish_turn(body.session_id, lambda: http().post("/turn", json=payload), body.text, body.chosen_option)
+        return finish_turn(body.session_id, lambda: http().post("/turn", json=payload), body.text, body.chosen_option,
+                           body.at)
 
     @app.post("/api/turn/audio", response_model=TurnOut)
-    async def turn_audio(session_id: str = Form(..., min_length=1), audio: UploadFile = File(...)) -> TurnOut:
+    async def turn_audio(session_id: str = Form(..., min_length=1), audio: UploadFile = File(...),
+                         at: str | None = Form(None)) -> TurnOut:
         data = await audio.read()
         files = {"audio": ("speech.wav", data, "audio/wav")}
         form = {"session_id": session_id, "speak": str(settings.kiosk.speak).lower()}
-        return finish_turn(session_id, lambda: http().post("/turn/audio", data=form, files=files), None, False)
+        return finish_turn(session_id, lambda: http().post("/turn/audio", data=form, files=files), None, False, at)
 
     @app.post("/api/receptionist")
     def receptionist(body: SessionIn) -> dict:
@@ -352,6 +450,13 @@ def create_app(settings: Settings | None = None, *, transport: httpx.BaseTranspo
         return {**fmap.model_dump(include={"verified", "verified_by", "floor", "viewbox", "corridor", "places"}),
                 "start_point": [start.x, start.y], "start_id": (start_id or "kiosk").casefold(),
                 "start_name": origin.name, "starts": starts}
+
+    @app.get("/api/position", response_model=Position)
+    def position(at: str | None = Query(default=None)) -> Position:
+        """Where the kiosk is (no ``at``) or where a place on the map is, for a sign's QR code."""
+        if at and fmap.origin_place(at) is None:
+            raise HTTPException(status_code=404, detail=f"{at} is not a place a visitor can start from on the {fmap.floor} map")
+        return fmap.position(at)
 
     @app.get("/api/route/{place_id}", response_model=Route)
     def route(place_id: str, start_id: str | None = Query(default=None, alias="from")) -> Route:
