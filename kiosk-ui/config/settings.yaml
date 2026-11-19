@@ -12,6 +12,19 @@ kiosk:
   id: kiosk-01                # prefix for session ids; one session per visitor
   idle_reset_s: 90            # no touch/voice for this long -> new visitor (screen and memory reset)
   speak: true                 # ask voice-memory for the answer audio and play it
+  # Wake on approach: the welcome screen dims while nobody is there and wakes (greets, waves) when someone walks up.
+  # With camera: true the browser asks for the webcam once; frames are compared in the browser to see movement or a
+  # face, and are never stored or sent anywhere. camera: false (or no webcam / permission refused) falls back to touch,
+  # mouse and keyboard only. Tune on the real kiosk: the numbers depend on the camera and where it points.
+  wake:
+    enabled: true
+    camera: true
+    sample_ms: 250
+    motion_threshold: 0.04      # share of the picture that changed between two samples (0-1)
+    min_face_ratio: 0.14        # face width / picture width, when the browser can detect faces: bigger = closer
+    hold_ms: 800                # must last this long to count as someone approaching
+    absent_s: 6                 # nobody for this long: the next movement is a new approach
+    sleep_after_s: 120          # dim the welcome screen after this long with nobody (0 = never dim)
   # What the robot says when the page opens and for each new visitor (spoken with voice-memory's voice).
   greeting: >-
     Hello, and welcome to the eighth floor of Central Block! I'm your AI receptionist. I can tell you where

@@ -32,10 +32,26 @@ def kb() -> KBView:
     return view
 
 
+SMALL_MAP = """
+places:
+  - {id: "facility:lift-north", label: "Lift", kind: facility, rect: [0, 0, 1, 1], near: a, aliases: ["lift", "elevator"]}
+  - {id: "facility:lift-west", label: "Lift", kind: facility, rect: [0, 0, 1, 1], near: a, aliases: ["lift", "elevator"]}
+  - {id: "facility:lift-south", label: "Lift", kind: facility, rect: [0, 0, 1, 1], near: a, aliases: ["lift", "elevator"]}
+  - {id: "facility:stairs-north", label: "Staircase", kind: stairs, rect: [0, 0, 1, 1], near: a, aliases: ["staircase", "stairs"]}
+  - {id: "facility:ccd", label: "CCD café", kind: facility, rect: [0, 0, 1, 1], near: a, aliases: ["CCD café", "CCD"]}
+  - {id: "facility:faculty-washroom", label: "Faculty washroom", kind: facility, rect: [0, 0, 1, 1]}
+  - {id: "room:871", label: "871", kind: room, rect: [0, 0, 1, 1], via: a}
+  - {id: "room:874", label: "874", kind: room, rect: [0, 0, 1, 1], via: a}
+"""
+
+
 @pytest.fixture
 def settings(tmp_path):
     s = load_settings()
+    (tmp_path / "map.yaml").write_text(SMALL_MAP, encoding="utf-8")
     return s.model_copy(update={
+        "memory": s.memory.model_copy(update={"origins_file": tmp_path / "map.yaml"}),
+        "tasks": s.tasks.model_copy(update={"requests": tmp_path / "requests.jsonl"}),
         "handoff": s.handoff.model_copy(update={"tickets": tmp_path / "handoffs.jsonl"}),
         "metrics": s.metrics.model_copy(update={"turn_log": tmp_path / "turns.jsonl", "report": tmp_path / "m.md"}),
         "stt": s.stt.model_copy(update={"backend": "text"}),
