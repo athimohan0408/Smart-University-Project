@@ -1,0 +1,127 @@
+# What each place on the 8th floor is, for the kiosk's place cards ("Explore the floor", tap a room on the map,
+# the phone walkthrough). Keyed by the place id in floor_map.yaml. Only write what the department has confirmed:
+# the card shows only the fields that are filled in.
+#
+#   name           what it is called            about   one or two sentences for visitors
+#   hours          opening hours, as written    notes   anything else visitors should know
+#   class_teacher  for a classroom              source  where the facts came from
+#
+# Who sits in a faculty cabin is NOT written here: it comes from rag-core's faculty sheet (faculty.json), with
+# what the timetable says about them right now.
+#
+# Classrooms 808-815: the "Rooms" sheet of rag-core/data/raw/8th_floor_faculty_with_subjects.xlsx
+# (class teachers from the PG class timetable, Version 04). They change each semester: update them here.
+
+area:staff-room:
+  name: Faculty Staff Room (C816)
+  about: The faculty cabins, 871 to 890. There are three open entrances on its south side, one next to the kiosk.
+  source: the department's floor-plan board and the staff room sketch
+
+area:hall:
+  name: Open hall
+  about: The open hall in the middle of the floor, between the two staircases.
+  source: the department's floor-plan board
+
+place:faculty-lounge:
+  name: Faculty Lounge
+  about: A lounge for faculty members.
+  source: the department's floor-plan board
+
+facility:faculty-washroom:
+  name: Faculty washroom
+  about: For faculty and staff.
+  source: the department's floor-plan board
+
+facility:ccd:
+  name: CCD café
+  about: A Café Coffee Day outlet at the west end of the floor.
+  source: the department's floor-plan board
+
+facility:water-west:
+  name: Drinking water
+  about: A drinking water dispenser.
+  source: the department's floor-plan board
+
+facility:water-north:
+  name: Drinking water
+  about: A drinking water dispenser.
+  source: the department's floor-plan board
+
+facility:gents-north:
+  name: Gents washroom
+  source: the department's floor-plan board
+
+facility:gents-south:
+  name: Gents washroom
+  source: the department's floor-plan board
+
+facility:ladies-east:
+  name: Ladies washroom
+  source: the department's floor-plan board
+
+facility:ladies-south:
+  name: Ladies washroom
+  source: the department's floor-plan board
+
+facility:lift-west:
+  name: West lift
+  about: Lift to the other floors.
+  source: the department's floor-plan board
+
+facility:lift-north:
+  name: North lift
+  about: Lift to the other floors.
+  source: the department's floor-plan board
+
+facility:lift-south:
+  name: South lift
+  about: Lift to the other floors.
+  source: the department's floor-plan board
+
+facility:stairs-north:
+  name: North staircase
+  about: Stairs to the other floors.
+  source: the department's floor-plan board
+
+facility:stairs-south:
+  name: South staircase
+  about: Stairs to the other floors.
+  source: the department's floor-plan board
+
+room:808:
+  name: MCA classroom, semester 5, section A
+  class_teacher: Dr Shivangi Singh
+  source: Rooms sheet, 8th_floor_faculty_with_subjects.xlsx
+
+room:809:
+  name: MCA classroom, semester 5, section B
+  class_teacher: Dr Nizar Banu P K
+  source: Rooms sheet, 8th_floor_faculty_with_subjects.xlsx
+
+room:810:
+  name: Placement Office
+  source: Rooms sheet, 8th_floor_faculty_with_subjects.xlsx
+
+room:811:
+  name: MCA Lab
+  source: Rooms sheet, 8th_floor_faculty_with_subjects.xlsx
+
+room:812:
+  name: MCA classroom, semester 2, section A
+  class_teacher: Dr Syam Mohan E
+  source: Rooms sheet, 8th_floor_faculty_with_subjects.xlsx
+
+room:813:
+  name: MCA classroom, semester 2, section B
+  class_teacher: Dr Binayak Dutta
+  source: Rooms sheet, 8th_floor_faculty_with_subjects.xlsx
+
+room:814:
+  name: MSc AIML classroom, semester 2
+  class_teacher: Dr Vijay Arputharaj J
+  source: Rooms sheet, 8th_floor_faculty_with_subjects.xlsx
+
+room:815:
+  name: MSc AIML classroom, semester 5
+  class_teacher: Dr Rajesh Kanna R
+  source: Rooms sheet, 8th_floor_faculty_with_subjects.xlsx

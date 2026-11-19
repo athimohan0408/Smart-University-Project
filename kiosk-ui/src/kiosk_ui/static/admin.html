@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Receptionist Admin</title>
+  <link rel="icon" href="/static/christ-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+  <link rel="stylesheet" href="/static/common.css">
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+  <header class="masthead">
+    <img class="logo" src="/static/christ-logo.png" alt="CHRIST (Deemed to be University)">
+    <div class="masthead-title">
+      <div class="eyebrow">Smart University AI Receptionist</div>
+      <h1>Admin</h1>
+      <div class="where">Central Block · 8th Floor · for the department office</div>
+    </div>
+    <div class="masthead-right admin-links">
+      <a href="/" target="_blank" rel="noopener">Kiosk</a>
+      <a href="/dashboard">Analytics</a>
+      <span id="who" class="who" hidden></span>
+      <button id="signout" class="secondary" type="button" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <!-- signing in -->
+  <main id="gate" class="gate" hidden>
+    <form id="signin" class="card gate-card" hidden>
+      <h2>Sign in</h2>
+      <label>Username <input name="username" autocomplete="username" required></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+      <p class="error" role="alert"></p>
+      <button class="btn btn-navy" type="submit">Sign in</button>
+    </form>
+    <form id="setup" class="card gate-card" hidden>
+      <h2>Create the first admin account</h2>
+      <p class="hint">There are no accounts yet. This account can then add others for the department office and faculty.</p>
+      <label>Your name <input name="name" autocomplete="name"></label>
+      <label>Username <input name="username" autocomplete="username" required></label>
+      <label>Password (8 or more characters) <input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="error" role="alert"></p>
+      <button class="btn btn-navy" type="submit">Create and sign in</button>
+    </form>
+    <div id="setup-remote" class="card gate-card" hidden>
+      <h2>Not set up yet</h2>
+      <p>There are no admin accounts yet. Open <strong>/admin</strong> on the kiosk computer itself to create the first one.</p>
+    </div>
+  </main>
+
+  <!-- signed in -->
+  <main id="app" class="dash admin" hidden>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="timetable" data-admin>Timetable</button>
+      <button role="tab" data-tab="faculty">Faculty status</button>
+      <button role="tab" data-tab="announce" data-admin>Announcements</button>
+      <button role="tab" data-tab="places" data-admin>Rooms &amp; places</button>
+      <button role="tab" data-tab="accounts">Accounts</button>
+      <button role="tab" data-tab="log" data-admin>Change log</button>
+    </nav>
+    <p id="flash" class="flash" role="status" hidden></p>
+
+    <!-- the semester timetable -->
+    <section id="tab-timetable" class="tab" data-admin hidden>
+      <div class="grid">
+        <div class="card">
+          <h2>Timetable in use</h2>
+          <dl id="tt-current" class="kv"></dl>
+          <ol class="howto">
+            <li><strong>Download</strong> the timetable in use (below), or start from the department's new one.</li>
+            <li>Change it in Excel: the <em>8th Floor Faculty</em> sheet (rooms, consultation hours, one column per day)
+              and the <em>Rooms</em> sheet (classrooms and class teachers). Keep the column names.</li>
+            <li><strong>Upload</strong> it here. Nothing changes until you check the preview and press Publish.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h2>Upload a new timetable</h2>
+          <form id="tt-upload" class="stack">
+            <label class="file">Excel workbook (.xlsx)
+              <input name="file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+            </label>
+            <button class="btn btn-navy" type="submit">Check this file</button>
+          </form>
+          <p class="hint">After publishing, the receptionist answers from the new timetable within a minute or two.
+            Every version is kept, so you can always go back.</p>
+        </div>
+        <div id="tt-preview" class="card wide" hidden>
+          <h2>Before you publish: what will change</h2>
+          <div id="tt-problems"></div>
+          <div id="tt-summary" class="summary"></div>
+          <div id="tt-changes"></div>
+          <form id="tt-publish" class="row-form">
+            <input name="note" maxlength="200" placeholder="A note for the change log, e.g. Even semester 2026-27">
+            <button class="btn btn-gold" type="submit">Publish this timetable</button>
+            <button id="tt-discard" class="ghost" type="button">Discard</button>
+          </form>
+        </div>
+        <div class="card wide">
+          <h2>All versions</h2>
+          <table class="table" id="tt-versions">
+            <thead><tr><th>Published</th><th>File</th><th>By</th><th class="num">Faculty</th><th>Note</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- faculty status -->
+    <section id="tab-faculty" class="tab" hidden>
+      <div class="card">
+        <h2>Faculty status</h2>
+        <p class="hint">Shown on the kiosk's place cards and with answers about that person, until it ends. Without one,
+          the kiosk says what the timetable says.</p>
+        <input id="fac-search" class="search" type="search" placeholder="Search a name or room">
+        <table class="table" id="fac-table">
+          <thead><tr><th>Name</th><th>Cabin</th><th>Now on the kiosk</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- announcements -->
+    <section id="tab-announce" class="tab" data-admin hidden>
+      <div class="grid">
+        <div class="card">
+          <h2>New announcement</h2>
+          <form id="ann-form" class="stack">
+            <label>What visitors should know <textarea name="text" maxlength="300" rows="3" required
+              placeholder="e.g. The MCA lab (811) is closed on Friday for the practical exam."></textarea></label>
+            <div class="two">
+              <label>From <input name="starts" type="date"></label>
+              <label>Until (empty: until removed) <input name="ends" type="date"></label>
+            </div>
+            <button class="btn btn-navy" type="submit">Show on the kiosk</button>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Announcements</h2>
+          <ul id="ann-list" class="list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- rooms and places -->
+    <section id="tab-places" class="tab" data-admin hidden>
+      <div class="grid">
+        <div class="card">
+          <h2>Rooms and places</h2>
+          <input id="pl-search" class="search" type="search" placeholder="Search a room or place">
+          <ul id="pl-list" class="pick-list"></ul>
+        </div>
+        <div class="card" id="pl-edit" hidden>
+          <h2 id="pl-title"></h2>
+          <form id="pl-info" class="stack">
+            <label>Name <input name="name" maxlength="120"></label>
+            <label>About (one or two sentences) <textarea name="about" rows="2" maxlength="300"></textarea></label>
+            <label>Opening hours <input name="hours" maxlength="120" placeholder="e.g. 09:00-17:00"></label>
+            <label>Class teacher <input name="class_teacher" maxlength="120"></label>
+            <label>Note for visitors <input name="notes" maxlength="200"></label>
+            <div class="row-form">
+              <button class="btn btn-navy" type="submit">Save</button>
+              <button id="pl-reset" class="ghost" type="button">Undo my edits</button>
+            </div>
+          </form>
+          <h3>Closed?</h3>
+          <form id="pl-closed" class="stack">
+            <div class="two">
+              <label>Reason <input name="reason" maxlength="200" placeholder="e.g. exam in progress"></label>
+              <label>Until (empty: until reopened) <input name="until" type="date"></label>
+            </div>
+            <div class="row-form">
+              <button class="btn btn-navy" type="submit">Mark closed</button>
+              <button id="pl-reopen" class="ghost" type="button">Reopen</button>
+            </div>
+          </form>
+          <h3>Door photo</h3>
+          <div class="photo-row">
+            <img id="pl-photo" alt="" hidden>
+            <form id="pl-photo-form" class="stack">
+              <label class="file">JPG, PNG or WebP, up to 6 MB <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" required></label>
+              <div class="row-form">
+                <button class="btn btn-navy" type="submit">Upload</button>
+                <button id="pl-photo-remove" class="ghost" type="button">Remove the uploaded photo</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- accounts -->
+    <section id="tab-accounts" class="tab" hidden>
+      <div class="grid">
+        <div class="card" data-admin>
+          <h2>Accounts</h2>
+          <table class="table" id="acc-table">
+            <thead><tr><th>Username</th><th>Name</th><th>Role</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="card" data-admin>
+          <h2>Add an account</h2>
+          <form id="acc-form" class="stack">
+            <div class="two">
+              <label>Username <input name="username" required maxlength="64"></label>
+              <label>Name <input name="name" maxlength="100"></label>
+            </div>
+            <label>Role
+              <select name="role">
+                <option value="admin">Department office (admin): everything</option>
+                <option value="faculty">Faculty: only their own status</option>
+              </select>
+            </label>
+            <label id="acc-fac-wrap" hidden>Faculty member <select name="faculty_id"></select></label>
+            <label>First password (8 or more characters; ask them to change it) <input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+            <button class="btn btn-navy" type="submit">Add</button>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Change my password</h2>
+          <form id="pw-form" class="stack">
+            <label>Current password <input name="current" type="password" required autocomplete="current-password"></label>
+            <label>New password (8 or more characters) <input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+            <button class="btn btn-navy" type="submit">Change</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- change log -->
+    <section id="tab-log" class="tab" data-admin hidden>
+      <div class="card">
+        <h2>Change log</h2>
+        <p class="hint">Every change made here: who, when and what. The newest first.</p>
+        <table class="table" id="log-table">
+          <thead><tr><th>When</th><th>Who</th><th>What</th><th>Details</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>

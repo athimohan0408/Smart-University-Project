@@ -57,6 +57,8 @@ class Totals(BaseModel):
     completion_rate: float | None
     routes_shown: int
     receptionist_button: int
+    helpful_yes: int = 0  # thumbs up / down under an answer on the kiosk
+    helpful_no: int = 0
 
 
 class Dashboard(BaseModel):
@@ -208,6 +210,8 @@ def compute(rag: list[dict], turns: list[dict], ui: list[dict], *, days: float |
             completion_rate=_completion_rate(turns),
             routes_shown=sum(1 for e in ui_turns if e.get("route_shown")),
             receptionist_button=sum(1 for e in ui if e.get("event") == "receptionist_button"),
+            helpful_yes=sum(1 for e in ui if e.get("event") == "feedback" and e.get("helpful") is True),
+            helpful_no=sum(1 for e in ui if e.get("event") == "feedback" and e.get("helpful") is False),
         ),
         most_asked=_grouped(questions, top, answered_of),
         unanswered=_grouped(unanswered, top),

@@ -38,7 +38,7 @@ def test_ids_are_matched_case_insensitively_and_bare_numbers_work(fmap):
 
 
 ENTRANCES = ("the Faculty Staff Room entrance by room 890", "the Faculty Staff Room entrance between rooms 888 and 885",
-             "the Faculty Staff Room entrance C816, between rooms 884 and 883")
+             "the Faculty Staff Room entrance C816, between rooms 883 and 882")
 
 
 def test_cabins_are_reached_through_one_of_the_three_entrances(fmap):
@@ -51,17 +51,19 @@ def test_cabins_are_reached_through_one_of_the_three_entrances(fmap):
         assert "east door" not in steps
         for (x1, y1), (x2, y2) in zip(route.points, route.points[1:]):
             if (y1 - 230) * (y2 - 230) < 0:
-                assert round(x1) in (235, 390, 565), (number, x1)
+                assert round(x1) in (235, 390, 625), (number, x1)
 
 
 def test_directions_from_the_kiosk(fmap):
-    # the kiosk stands in the north corridor, right beside the entrance between 884 and 883
+    # the kiosk stands in the north corridor, right beside the entrance between 883 and 882
     assert fmap.route("room:874").steps == [
-        "From the kiosk, go through the Faculty Staff Room entrance C816, between rooms 884 and 883 and walk about 8 m "
-        "to the middle aisle.",
-        "Turn left and walk about 4 m.",
+        "From the kiosk, walk about 2 m towards the Faculty Staff Room entrance C816, between rooms 883 and 882.",
+        "Turn left and walk about 8 m to the middle aisle.",
+        "Turn left and walk about 7 m.",
         "Room 874 is on your right.",
     ]
+    assert fmap.route("room:883").steps[-1] == "Room 883 is on your left."  # beside 884, west of the entrance
+    assert fmap.route("room:882").steps[-2:] == ["Turn right and walk about 2 m.", "Room 882 is on your right."]
     assert fmap.route("room:877").steps[-1] == "Room 877 is on your left."
     west = fmap.route("room:890").steps
     assert west[0] == "From the kiosk, walk about 9 m towards the Faculty Staff Room entrance between rooms 888 and 885."
@@ -82,7 +84,7 @@ def test_no_step_is_a_pointless_one_metre_shuffle(fmap):
 
 def test_panoramas_are_collected_along_the_route(fmap):
     data = fmap.model_dump()
-    data["nodes"]["n565"]["panorama"] = "staff-room-middle-entrance.jpg"
+    data["nodes"]["n625"]["panorama"] = "staff-room-middle-entrance.jpg"
     for p in data["places"]:
         if p["id"] == "room:874":
             p["panorama"] = "room-874.jpg"
@@ -137,5 +139,58 @@ def test_walkthrough_steps_cover_the_whole_route_in_order(fmap, number):
 
 def test_walkthrough_arrows_match_the_words(fmap):
     r = fmap.route("room:874")
-    assert r.step_kinds == ["enter", "left", "arrive-right"]  # go through C816, turn left, on your right
+    assert r.step_kinds == ["start", "left", "left", "arrive-right"]  # to C816, in, left along the aisle
     assert fmap.route("room:815").step_kinds[0] == "right"
+
+
+# ---- routes from the lifts and staircases (the QR stickers) ----
+STARTS = ("lift-north", "lift-south", "lift-west", "stairs-north", "stairs-south")
+
+
+@pytest.mark.parametrize("start", STARTS)
+def test_every_destination_is_reachable_from_every_lift_and_staircase(fmap, start):
+    origin = fmap.starts[start]
+    for p in fmap.places:
+        if not p.routable or p.id == f"facility:{start}":
+            continue
+        route = fmap.route(p.id, start)
+        assert route is not None, (start, p.id)
+        assert route.start_id == start and route.start_name == origin.name
+        assert route.points[0] == (fmap.nodes[origin.node].x, fmap.nodes[origin.node].y)
+        assert route.steps[0].startswith(origin.lead), (start, p.id, route.steps[0])
+        assert len(route.steps) == len(route.step_spans) == len(route.step_kinds) == len(route.step_photos)
+
+
+def test_out_of_a_lift_the_first_step_says_which_way_to_turn(fmap):
+    steps = fmap.route("room:874", "lift-north").steps
+    assert steps[0] == "Step out of the north lift, turn left and walk about 6 m."
+    assert steps[-1] == "Room 874 is on your right."
+    assert any("entrance C816" in s for s in steps)
+    assert fmap.route("room:874", "lift-north").step_photos[0] == "lifts.jpg"  # "where you start"
+    west = fmap.route("room:808", "lift-west").steps
+    assert west[0] == "Step out of the west lift, turn right and walk about 16 m."
+
+
+def test_the_kiosk_is_still_the_default_start(fmap):
+    assert fmap.route("room:874").steps == fmap.route("room:874", "kiosk").steps
+    assert fmap.route("room:874").start_id == "kiosk"
+    assert fmap.route("room:874", "the moon") is None
+
+
+def test_lifts_stairs_and_washrooms_are_destinations(fmap):
+    r = fmap.route("facility:stairs-north")
+    assert r.steps[-1] == "The north staircase is on your left."
+    assert sum("north staircase" in s for s in r.steps) == 1  # not "... to the north staircase. The north staircase ..."
+    assert fmap.route("facility:gents-south").destination == "The gents washroom"
+    assert fmap.route("facility:faculty-washroom") is None  # staff only: no route
+
+
+def test_nearest(fmap):
+    assert fmap.nearest("water", "lift-west").place_id == "facility:water-west"
+    assert fmap.nearest("gents", "lift-north").place_id == "facility:gents-north"
+    assert fmap.nearest("gents", "lift-west").place_id == "facility:gents-south"
+    # the lift you are standing at doesn't count
+    assert fmap.nearest("lift", "lift-north").place_id != "facility:lift-north"
+    assert fmap.nearest("way-down", "lift-north").place_id == "facility:stairs-north"
+    assert fmap.nearest("lift").place_id.startswith("facility:lift-")
+    assert fmap.nearest("helipad") is None

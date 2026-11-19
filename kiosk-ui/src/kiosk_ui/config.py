@@ -41,10 +41,14 @@ class KioskSettings(_Section):
     idle_reset_s: float
     speak: bool
     greeting: str
+    # The address phones use to reach this server (e.g. http://192.168.1.20:8002), for the QR codes that open the
+    # walkthrough on a phone. None: no "send to phone" QR on the kiosk (127.0.0.1 is only the kiosk itself).
+    public_url: str | None = None
 
 
 class MapSettings(_Section):
     file: ModulePath
+    places_info: ModulePath | None = None  # place cards; default: places_info.yaml next to the map file
 
 
 class KBSettings(_Section):
@@ -55,6 +59,13 @@ class LogSettings(_Section):
     ui_events: ModulePath
     rag_queries: ModulePath
     voice_turns: ModulePath
+
+
+class AdminSettings(_Section):
+    data_dir: ModulePath  # accounts, announcements, statuses, timetable versions, change log (not in git)
+    rag_url: str  # rag-core, for POST /reload-kb after a new timetable is published
+    timetable_file: ModulePath  # rag-core's faculty workbook, which a published timetable replaces
+    reload_timeout_s: float  # rag-core rebuilds its index on reload: give it time
 
 
 class EvaluationSettings(_Section):
@@ -72,6 +83,7 @@ class Settings(_Section):
     map: MapSettings
     kb: KBSettings
     logs: LogSettings
+    admin: AdminSettings
     evaluation: EvaluationSettings
 
 

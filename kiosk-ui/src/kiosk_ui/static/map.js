@@ -12,7 +12,8 @@ const FloorMapView = (() => {
   }
 
   // Draw the map into `container`; returns {showRoute(route), clear()}.
-  function render(container, map, { onPlace } = {}) {
+  // onPlace(place): tapping a place on the map; allPlaces: every place is tappable, not only those with a photo.
+  function render(container, map, { onPlace, allPlaces = false } = {}) {
     const [vx, vy, vw, vh] = map.viewbox;
     const svg = el("svg", { viewBox: `${vx} ${vy} ${vw} ${vh}`, "aria-hidden": "true" });
     for (const [x, y, w, h] of map.corridor) svg.append(el("rect", { x, y, width: w, height: h, rx: 6, class: "corridor" }));
@@ -25,8 +26,8 @@ const FloorMapView = (() => {
       const r = el("rect", { x, y, width: w, height: h, rx: p.kind === "room" ? 3 : 2, class: cls });
       r.append(el("title", {}, p.kind === "room" ? `Room ${p.label}` : p.label));
       svg.append(r);
-      if (onPlace && p.photo) {
-        r.classList.add("has-photo");
+      if (onPlace && (p.photo || allPlaces) && p.kind !== "hall") {
+        r.classList.add("has-photo");  // tappable: its photo, or its place card ("Explore the floor")
         r.addEventListener("click", () => onPlace(p));
       }
       const [lx, ly] = p.label_at || [x + w / 2, y + h / 2];

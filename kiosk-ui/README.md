@@ -60,13 +60,13 @@ the MCA Lab, washrooms, water dispensers, lifts, staircases, CCD café, Faculty 
 open hall), a hand sketch of the inside of the **Faculty Staff Room (C816)** (cabins 871-885, 888 and 890 in two rows
 with passages), and the team's markings on the map: the kiosk stands in the north corridor outside the middle of the
 staff room, and the staff room's **only three ways in** are open passages on its south side, by room 890, between
-888 and 885, and between 884 and 883 (beside the kiosk). There is no door at the east end. 886, 887 and 889 are not
+888 and 885, and between 883 and 882 (beside the kiosk). There is no door at the east end. 886, 887 and 889 are not
 in the sketch and are not drawn. Like the board, the map is **not to scale** (the staff room is drawn taller so the
 cabins are readable), so distances are approximate; the kiosk says "Not to scale" above the map.
 
 Routes start at the kiosk, enter the staff room through the nearest of the three passages and run along its
-middle aisle ("From the kiosk, go through the Faculty Staff Room entrance C816, between rooms 884 and 883 and walk about
-8 m to the middle aisle. Turn left and walk about 4 m. Room 874 is on your right."). A first step names a landmark
+middle aisle ("From the kiosk, walk about 2 m towards the Faculty Staff Room entrance C816, between rooms 883 and 882. Turn
+left and walk about 8 m to the middle aisle. Turn left and walk about 7 m. Room 874 is on your right."). A first step names a landmark
 when it can; otherwise "left/right" assume the visitor faces the kiosk, i.e. north.
 
 To confirm or correct it:
@@ -97,7 +97,7 @@ the kiosk's voice (`GET /api/speak`), walks it, and moves on by itself to "You h
 `data/photos/` holds 19 of the team's phone photos (November 2026), resized for the kiosk (about 1024 px, under
 200 KB each, no metadata): 15 cabin doors with their name plates (871-874, 876-879, 881-885, 888, 890), the C816
 entrance, the Faculty Lounge, the lifts and the staircase. A node or place names its photo (`photo:` in the map
-file). The kiosk shows a landmark's photo next to the step that names it ("go through the Faculty Staff Room entrance
+file). The kiosk shows a landmark's photo next to the step that names it ("... the Faculty Staff Room entrance
 C816 ...") and the room's door next to the last step ("Look for this door"); tap to enlarge. Rooms with a photo can
 also be tapped on the map. No photo yet: 875, 880, 886, 887, 889, the C817 doorway's place on the map (see below).
 
@@ -171,6 +171,61 @@ From rag-core's `data/processed/faculty.json` (read-only, `kb.faculty_json` in s
 - **Hands-free microphone**: one tap, then the kiosk sends by itself after 0.8 s of silence (the same numbers as
   voice-memory's `audio:` settings); nothing heard for 8 s cancels, 12 s is the maximum.
 
+## Exploring the floor, lifts, phones and 3D
+
+- **Routes from the lifts and staircases.** `starts:` in `data/floor_map.yaml` adds five more places a route can
+  begin: `lift-north`, `lift-south`, `lift-west`, `stairs-north`, `stairs-south`. Each knows which way a visitor
+  faces stepping out, so the first step says which way to turn ("Step out of the north lift, turn left and walk about
+  6 m."). `GET /api/route/{place}?from=lift-north`; the kiosk is still the default (`from=kiosk`).
+- **Lifts, stairs, washrooms, water and the CCD café are destinations** (they have a `door`), so "the nearest ..."
+  works: `GET /api/nearest/{lift|stairs|way-down|gents|ladies|water}?from=...`. The faculty washroom has no route.
+- **Place cards** (`GET /api/place/{id}`, list at `GET /api/places`): tap any room on the map, or open **Explore the
+  floor** (search by room, person or place; one-tap nearest washroom / lift / water). A card says what the place is
+  (`data/places_info.yaml`, this module's own file: classrooms 808-815 from the dataset's Rooms sheet, with class
+  teachers), where it is, and for a cabin who sits there (rag-core's faculty sheet) with what the timetable says
+  right now ("Consultation hours now, until 12:45", "Teaching now (ML) until 11:45") and the next consultation
+  hours. The timetable says where someone should be, not where they are, and the card says so.
+- **Phone walkthrough** `/go?from=lift-north&to=room:874`: the same directions on a phone, one step at a time.
+  **`/qr`** prints a QR sticker for each lift and staircase. For phones to reach the kiosk, set `kiosk.public_url`
+  (the kiosk's address on the campus Wi-Fi) and `api.host: 0.0.0.0` in `config/settings.yaml`; then place cards
+  also show a "scan to take the directions on your phone" QR. QR codes are drawn with qrcode-generator (MIT, from
+  jsDelivr, or `static/vendor/qrcode.js` for an offline kiosk).
+- **3D view** (on by default, "2D map" switches back, remembered per kiosk): the floor raised into 3D with Three.js
+  0.160 (MIT, from jsDelivr via the import map in `kiosk.html`), the route as a glowing tube, and a camera that flies
+  along it to the highlighted room. Drag to turn, pinch to zoom, tap a room for its card. Without WebGL or without
+  network for Three.js the button says "3D unavailable" and the 2D map stays.
+- **Easy view** (masthead): larger text, darker colours, bigger buttons, slower speech and walkthrough. It resets
+  for the next visitor. All routes on this floor are step-free; "Nearest lift" avoids stairs between floors.
+- **Was this helpful?** Thumbs up / down under an answer: a `feedback` event in `logs/ui_events.jsonl`
+  (`turn_id`, `helpful`), shown on the dashboard as "Rated helpful".
+
+## Admin dashboard (`/admin`)
+
+For the department office, so the receptionist stays right when things change, without editing files:
+
+- **Timetable each semester.** Download the timetable in use, change it in Excel (the *8th Floor Faculty* sheet:
+  rooms, consultation hours, a column per day; the *Rooms* sheet: classrooms and class teachers), upload it.
+  The dashboard checks it (missing columns, a person twice, rows without names: these stop it; missing rooms or
+  hours: warnings) and shows **what will change** (people added / removed, every changed room, hours and day)
+  before anything happens. **Publish** saves it as rag-core's `data/raw/8th_floor_faculty_with_subjects.xlsx` and
+  calls rag-core's own `POST /reload-kb` (no restart, no rag-core code changed); the kiosk then re-reads
+  `faculty.json` and the Rooms sheet's class teachers. If rag-core can't load it, the old file is put back.
+  Every version is kept (the one in use before the first publish too): **Use this version** goes back.
+- **Faculty status:** on leave / out of office / in a meeting / in the cabin, until a date and time, with a note.
+  Shown on place cards and under answers about that person ("Dr X: On leave until Fri 20 Nov (from the department
+  office)") instead of what the timetable says, until it ends.
+- **Announcements** with start and end dates: a notice bar on every kiosk screen.
+- **Rooms and places:** edit what a place is, hours, class teacher, a note; **mark a room closed** (with a reason,
+  until a date: shown on its card and under answers that route there); **upload a door photo** (shown on the card
+  and as the last step's photo).
+- **Accounts:** `admin` (the office: everything) and `faculty` (their own status only). The first admin account is
+  created on the kiosk computer itself (`/admin` on 127.0.0.1). Passwords are stored only as salted PBKDF2 hashes;
+  five wrong passwords lock an account for five minutes. Locked out:
+  `python -m kiosk_ui.admin_api reset-password <username>` (or `add-admin`, `list`).
+- **Change log:** who changed what, and when.
+
+Everything is kept in `data/admin/` (settings: `admin:`), which is not in git: back it up with the kiosk.
+
 ## Evaluation and the final report
 
 [`evaluation/test_set.jsonl`](evaluation/test_set.jsonl) is 26 visitor scenarios, 29 turns: rooms on this floor
@@ -196,6 +251,9 @@ and rag-core's evaluations first so their latest numbers are included.
 
 - **Floor map**: drawn from the floor-plan board and the staff room sketch; walk the routes once and set `verified: true` (see above). Resolve the five sketch/sheet room differences with the department.
 - **360° photos**: supported; waiting for the photos.
+- **Lift doors**: the map assumes the north and south lifts open onto the hall walkway and the west lift onto the
+  west corridor, and reads washroom door sides off the board. Walk them once and fix `starts:` / `door:` if needed.
+- **Phones**: set `kiosk.public_url` before printing the `/qr` stickers (the page warns while it points at 127.0.0.1).
 - **Clarification buttons** come from voice-memory's `options`. rag-core's proposed `clarification_options`
   field would make them more reliable (open proposal in `rag-core/docs/interface.md`).
 - **voice-memory on Windows**: with `tts: backend: pyttsx3`, the second spoken answer hangs (the Windows voice

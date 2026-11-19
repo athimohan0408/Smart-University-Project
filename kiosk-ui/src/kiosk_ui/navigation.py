@@ -32,6 +32,17 @@ class Node(BaseModel):
     panorama: str | None = None  # 360-degree photo taken here, a file name in data/panoramas/
 
 
+class Start(BaseModel):
+    """Somewhere other than the kiosk a visitor can start from: a lift or a staircase (its QR sticker opens the
+    phone walkthrough with ``?from=<id>``)."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    node: str
+    name: str  # "the north lift"
+    facing: str | None = None  # the way a visitor faces on arriving here (out of the lift door); None = unknown
+    lead: str | None = None  # how the first step begins: "Step out of the north lift" (default: "From <name>")
+    photo: str | None = None  # what it looks like, shown with the first step
+
+
 class Place(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     id: str
@@ -43,6 +54,7 @@ class Place(BaseModel):
     label_at: tuple[float, float] | None = None  # where to draw the label (default: the middle of rect)
     photo: str | None = None  # the door with its name plate, a file name in data/photos/ ("look for this door")
     panorama: str | None = None  # 360-degree photo of the door / inside, a file name in data/panoramas/
+    spoken: str | None = None  # how directions name it when the label alone is too short ("the gents washroom")
 
     @property
     def routable(self) -> bool:
@@ -50,7 +62,21 @@ class Place(BaseModel):
 
     @property
     def spoken_name(self) -> str:
+        if self.spoken:
+            return self.spoken[0].upper() + self.spoken[1:]
         return f"Room {self.label}" if self.kind == "room" else f"The {self.label}"
+
+
+KIOSK = "kiosk"  # the start id of the kiosk itself
+# "the nearest ..." questions: which places count, by id prefix
+NEAREST = {
+    "lift": ("facility:lift-",),
+    "stairs": ("facility:stairs-",),
+    "way-down": ("facility:lift-", "facility:stairs-"),
+    "gents": ("facility:gents-",),
+    "ladies": ("facility:ladies-",),
+    "water": ("facility:water-",),
+}
 
 
 class FloorMap(BaseModel):
@@ -68,6 +94,7 @@ class FloorMap(BaseModel):
     nodes: dict[str, Node]
     edges: list[tuple[str, str]]
     places: list[Place]
+    starts: dict[str, Start] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _check(self) -> FloorMap:
@@ -75,6 +102,13 @@ class FloorMap(BaseModel):
             raise ValueError(f"facing must be one of {sorted(_FACING)}, not {self.facing!r}")
         if self.start not in self.nodes:
             raise ValueError(f"start node {self.start!r} is not in nodes")
+        for sid, s in self.starts.items():
+            if sid == KIOSK:
+                raise ValueError(f"start id {KIOSK!r} is the kiosk itself (`start`); pick another id")
+            if s.node not in self.nodes:
+                raise ValueError(f"start {sid}: node {s.node!r} is not in nodes")
+            if s.facing is not None and s.facing not in _FACING:
+                raise ValueError(f"start {sid}: facing must be one of {sorted(_FACING)}, not {s.facing!r}")
         for a, b in self.edges:
             for n in (a, b):
                 if n not in self.nodes:
@@ -98,12 +132,32 @@ class FloorMap(BaseModel):
         key = normalise_place_id(place_id)
         return next((p for p in self.places if p.id.casefold() == key), None)
 
-    def route(self, place_id: str) -> Route | None:
-        """Route from the start to a place, or None when the place isn't on this map (or not routable)."""
-        place = self.place(place_id)
-        if place is None or not place.routable:
+    def origin(self, start_id: str | None = None) -> Start | None:
+        """Where a route starts: the kiosk (no id, or 'kiosk'), a lift or staircase in `starts`, else None."""
+        key = (start_id or KIOSK).strip().casefold()
+        if key == KIOSK:
+            return Start(node=self.start, name=self.start_name)
+        return self.starts.get(key)
+
+    def nearest(self, what: str, start_id: str | None = None) -> Route | None:
+        """The shortest route to the nearest lift / staircase / washroom / water ('lift', 'way-down', 'gents', ...,
+        see NEAREST), from the kiosk or another start. The place you are standing at doesn't count."""
+        prefixes = NEAREST.get(what.strip().casefold())
+        if prefixes is None:
             return None
-        names = self._shortest_path(self.start, place.via)
+        here = f"facility:{(start_id or '').strip().casefold()}"
+        routes = [r for p in self.places if p.id.startswith(prefixes) and p.id != here
+                  and (r := self.route(p.id, start_id)) is not None]
+        return min(routes, key=lambda r: r.length_m, default=None)
+
+    def route(self, place_id: str, start_id: str | None = None) -> Route | None:
+        """Route from the kiosk (or another start, e.g. 'lift-north') to a place, or None when the place isn't on
+        this map (or not routable), or the start is unknown."""
+        place = self.place(place_id)
+        origin = self.origin(start_id)
+        if place is None or not place.routable or origin is None:
+            return None
+        names = self._shortest_path(origin.node, place.via)
         if names is None:
             return None
         points = [(self.nodes[n].x, self.nodes[n].y) for n in names] + [place.door]
@@ -112,13 +166,16 @@ class FloorMap(BaseModel):
         panoramas = [p for n in names if (p := self.nodes[n].panorama)]
         if place.panorama:
             panoramas.append(place.panorama)
-        steps, landmark_of_step, spans, kinds = self._directions(points, landmarks, place)
+        steps, landmark_of_step, spans, kinds = self._directions(points, landmarks, place, origin)
         photo_of = {self.nodes[n].name: self.nodes[n].photo for n in names if self.nodes[n].name and self.nodes[n].photo}
         step_photos = [photo_of.get(lm) if lm else None for lm in landmark_of_step]
+        if origin.photo and len(step_photos) > 1 and step_photos[0] is None:
+            step_photos[0] = origin.photo  # "Step out of the north lift ...": the lifts
         step_photos[-1] = place.photo  # the last step is "Room 874 is on your right": show its door
         step_metres = [round(sum(math.dist(points[k], points[k + 1]) for k in range(a, b)) * self.metres_per_unit, 1)
                        for a, b in spans]
-        return Route(place_id=place.id, label=place.label, points=points,
+        start_id = (start_id or KIOSK).strip().casefold()
+        return Route(place_id=place.id, label=place.label, destination=place.spoken_name, start_id=start_id, start_name=origin.name, points=points,
                      length_m=round(length * self.metres_per_unit, 1),
                      steps=steps, step_photos=step_photos, step_spans=spans, step_kinds=kinds,
                      step_metres=step_metres, panoramas=panoramas)
@@ -166,7 +223,7 @@ class FloorMap(BaseModel):
                     heapq.heappush(queue, (d + w, m))
         return None
 
-    def _directions(self, points: list[Point], landmarks: list[str | None], place: Place,
+    def _directions(self, points: list[Point], landmarks: list[str | None], place: Place, origin: Start,
                     ) -> tuple[list[str], list[str | None], list[tuple[int, int]], list[str]]:
         """The steps and, for each step: the landmark it names (to show that landmark's photo with it), the part of
         `points` it walks (start and end index), and its kind for the turn arrow (start, enter, left, right,
@@ -181,12 +238,20 @@ class FloorMap(BaseModel):
         for name in landmarks:
             named.append(None if name is not None and name == next((n for n in reversed(named) if n), None) else name)
         legs = _straight_legs(walk, named)
+        # walking straight past a landmark a couple of metres from the start (the C816 entrance on the way east)
+        # is one step, not "walk 2 m towards it, keep going straight"
+        if len(legs) > 2 and legs[0][1] * self.metres_per_unit < 3 and legs[0][0] == legs[1][0]:
+            legs = [(legs[0][0], legs[0][1] + legs[1][1], legs[1][2], legs[1][3]), *legs[2:]]
         steps: list[str] = []
-        heading = _FACING[self.facing]
-        here = self.start_name
+        # out of a lift the visitor's facing is known (the door); at the kiosk it is a guess
+        known = origin.facing is not None
+        heading = _FACING[origin.facing or self.facing]
+        opening = origin.lead or f"From {origin.name}"
         through = None  # a landmark right next to the start: "go through it" instead of "walk 1 m to it"
         for i, (direction, length, landmark, end) in enumerate(legs):
             metres = max(1, round(length * self.metres_per_unit))
+            if landmark and place.spoken and landmark.casefold() == place.spoken.casefold():
+                landmark = None  # "... to the north staircase. The north staircase is on your left." says it twice
             if not steps and length * self.metres_per_unit < 1.5 and i < len(legs) - 1:
                 # a step's worth from the start: only worth naming if the route turns into it
                 # (the next step's span starts at the kiosk, so the walkthrough still covers it)
@@ -199,21 +264,22 @@ class FloorMap(BaseModel):
             span_start = end
             if first and through:
                 to = f" to {landmark}" if landmark else ""
-                steps.append(f"From {here}, go through {through} and walk about {metres} m{to}.")
+                steps.append(f"{opening}, go through {through} and walk about {metres} m{to}.")
                 seen.append(through)  # the entrance is what to look for
                 kinds.append("enter")
                 heading = direction
                 continue
-            if first and landmark:
+            if first and landmark and not known:
                 # the visitor's facing at the kiosk is a guess, so the first step names where to head instead
-                steps.append(f"From {here}, walk about {metres} m towards {landmark}.")
+                steps.append(f"{opening}, walk about {metres} m towards {landmark}.")
                 seen.append(landmark)
                 kinds.append("start")
                 heading = direction
                 continue
             if first:
-                lead = {"straight": f"From {here}, walk straight ahead",
-                        "around": f"From {here}, turn around and walk"}.get(turn, f"From {here}, turn {turn} and walk")
+                ahead = f"{opening} and walk straight ahead" if origin.lead else f"{opening}, walk straight ahead"
+                lead = {"straight": ahead,
+                        "around": f"{opening}, turn around and walk"}.get(turn, f"{opening}, turn {turn} and walk")
             else:
                 lead = "Keep going straight for" if turn == "straight" else f"Turn {turn} and walk"
             to = f" to {landmark}" if landmark else ""
@@ -235,6 +301,9 @@ class FloorMap(BaseModel):
 class Route(BaseModel):
     place_id: str
     label: str
+    destination: str = ""  # how to say it: "Room 874", "The gents washroom"
+    start_id: str = KIOSK
+    start_name: str = "the kiosk"
     points: list[tuple[float, float]] = Field(description="Polyline in map units, start first, door last.")
     length_m: float
     steps: list[str]
@@ -310,6 +379,17 @@ def main() -> None:
             print(f"  {p.id}: NOT REACHABLE from {fmap.start}")
         else:
             print(f"  {p.id}: {r.length_m} m  | " + " ".join(r.steps))
+    for sid, s in fmap.starts.items():
+        print(f"from {s.name} ({sid}):")
+        for p in fmap.places:
+            if not p.routable or p.id == f"facility:{sid}":
+                continue
+            r = fmap.route(p.id, sid)
+            if r is None:
+                problems += 1
+                print(f"  {p.id}: NOT REACHABLE from {sid}")
+            else:
+                print(f"  {p.id}: {r.length_m} m  | {r.steps[0]}")
     raise SystemExit(1 if problems else 0)
 
 

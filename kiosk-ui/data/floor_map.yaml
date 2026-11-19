@@ -6,7 +6,7 @@
 # - the kiosk's own position (marked by the team on this map): in the north corridor, outside the middle of the
 #   staff room's south wall, its screen facing the hall, so a visitor using it faces north; and the only three
 #   ways into the staff room, all open passages in its south side: by room 890, between 888 and 885, and
-#   between 884 and 883 (next to the kiosk). There is no door at the east end.
+#   between 883 and 882 (next to the kiosk; 883 sits right beside 884). There is no door at the east end.
 # - a hand sketch of the inside of the Faculty Staff Room (C816): the faculty cabins 871-885, 888, 890 in two
 #   rows with passages. 886, 887 and 889 are not in the sketch and are not drawn.
 # Positions follow both drawings; the staff room is drawn taller than on the board so the cabins are readable.
@@ -43,7 +43,7 @@ corridor:            # walkable floor, drawn lighter than rooms
   - [228, 12, 14, 205]        # staff room: west passage
   - [242, 82, 540, 18]        # staff room: middle aisle
   - [380, 100, 20, 110]       # staff room: passage between 888 and 885
-  - [553, 100, 22, 110]       # staff room: passage between 884 and 883
+  - [607, 100, 36, 110]       # staff room: passage between 883 and 882
   - [767, 82, 18, 100]        # staff room: east passage (to 880; no way out at the east end)
 
 nodes:
@@ -58,12 +58,14 @@ nodes:
   hall_e: {x: 920, y: 460, name: "the east corridor, by rooms 812 and 813"}
   hall_sw: {x: 350, y: 560}
   hall_se: {x: 880, y: 560}
+  lift_n: {x: 757, y: 360}          # in front of the north lift (its doors open onto the hall walkway)
+  lift_s: {x: 777, y: 560}          # in front of the south lift
   # north corridor (y 250)
   n155: {x: 155, y: 250}
   n235: {x: 235, y: 250, name: "the Faculty Staff Room entrance by room 890"}
   n350: {x: 350, y: 250}
   n390: {x: 390, y: 250, name: "the Faculty Staff Room entrance between rooms 888 and 885"}
-  n565: {x: 565, y: 250, name: "the Faculty Staff Room entrance C816, between rooms 884 and 883", photo: entrance-c816.jpg}
+  n625: {x: 625, y: 250, name: "the Faculty Staff Room entrance C816, between rooms 883 and 882", photo: entrance-c816.jpg}
   n875: {x: 875, y: 250}
   n1000: {x: 1000, y: 250}
   # west corridor (x 155)
@@ -89,7 +91,7 @@ nodes:
   s775: {x: 775, y: 670}
   s880: {x: 880, y: 670}
   s945: {x: 945, y: 670}
-  # Faculty Staff Room (C816): entered only by the three open passages at n235, n390 and n565; the aisles inside
+  # Faculty Staff Room (C816): entered only by the three open passages at n235, n390 and n625; the aisles inside
   # come from the sketch
   in_w: {x: 235, y: 205}
   p55: {x: 235, y: 55}
@@ -102,8 +104,8 @@ nodes:
   m490: {x: 490, y: 90}
   m510: {x: 510, y: 90}
   m560: {x: 560, y: 90}
-  m565: {x: 565, y: 90, name: "the middle aisle"}
-  m615: {x: 615, y: 90}
+  m575: {x: 575, y: 90}
+  m625: {x: 625, y: 90, name: "the middle aisle"}
   m630: {x: 630, y: 90}
   m675: {x: 675, y: 90}
   m700: {x: 700, y: 90}
@@ -116,10 +118,12 @@ edges:
   # hall
   - [hall_c, h_n]
   - [h_n, hall_nw]
-  - [h_n, hall_ne]
+  - [h_n, lift_n]
+  - [lift_n, hall_ne]
   - [hall_c, h_s]
   - [h_s, hall_sw]
-  - [h_s, hall_se]
+  - [h_s, lift_s]
+  - [lift_s, hall_se]
   - [hall_c, hall_w]
   - [hall_c, hall_e]
   - [hall_nw, n350]
@@ -132,9 +136,9 @@ edges:
   - [n155, n235]
   - [n235, n350]
   - [n350, n390]
-  - [n390, n565]
-  - [n565, here]
-  - [here, n875]
+  - [n390, here]
+  - [here, n625]
+  - [n625, n875]
   - [n875, n1000]
   - [n155, lounge_door]
   # west corridor
@@ -163,7 +167,7 @@ edges:
   # into the staff room: the three open passages, straight up to the middle aisle
   - [n235, in_w]
   - [n390, m390]
-  - [n565, m565]
+  - [n625, m625]
   # staff room: west passage
   - [in_w, p130]
   - [p130, p90]
@@ -176,9 +180,9 @@ edges:
   - [m440, m490]
   - [m490, m510]
   - [m510, m560]
-  - [m560, m565]
-  - [m565, m615]
-  - [m615, m630]
+  - [m560, m575]
+  - [m575, m625]
+  - [m625, m630]
   - [m630, m675]
   - [m675, m700]
   - [m700, m735]
@@ -186,24 +190,38 @@ edges:
   - [m770, m775]
   - [e172, m775]
 
+# starts: where else a visitor can begin a route (the kiosk itself is `start` above). Each lift and staircase
+# gets a QR sticker that opens the phone walkthrough at /go?from=<id>. `facing` is the way someone faces stepping
+# out (it decides "turn left / right" in the first step). The lift doors are ASSUMED to open onto the hall
+# walkway (north lift: south; south lift: north) and the west lift onto the west corridor: check on the floor.
+starts:
+  lift-north: {node: lift_n, name: "the north lift", facing: south, lead: "Step out of the north lift", photo: lifts.jpg}
+  lift-south: {node: lift_s, name: "the south lift", facing: north, lead: "Step out of the south lift", photo: lifts.jpg}
+  lift-west: {node: w355, name: "the west lift", facing: east, lead: "Step out of the west lift", photo: lifts.jpg}
+  stairs-north: {node: h_n, name: "the north staircase", facing: south, lead: "Leave the north staircase", photo: staircase.jpg}
+  stairs-south: {node: h_s, name: "the south staircase", facing: north, lead: "Leave the south staircase", photo: staircase.jpg}
+
 places:
   # ---- areas and facilities (drawn first, so rooms sit on top) ----
+  # Facilities with a door are destinations too ("the nearest washroom", "back to the lift"). Which side their
+  # doors are on is read off the board (the side facing a corridor or the hall): walk them to confirm.
+  # The faculty washroom is for staff, so it gets no route.
   - {id: "area:staff-room", label: "Faculty Staff Room · C816", kind: area, rect: [200, 0, 660, 230], label_at: [420, 225]}
   - {id: "area:hall", label: "Open hall", kind: hall, rect: [200, 270, 760, 380], label_at: [580, 520]}
   - {id: "facility:faculty-washroom", label: "Faculty washroom", kind: facility, rect: [0, 0, 190, 90]}
   - {id: "place:faculty-lounge", label: "Faculty Lounge", kind: facility, rect: [0, 90, 190, 110], door: [170, 200], via: lounge_door, photo: faculty-lounge.jpg}
-  - {id: "facility:water-west", label: "Water", kind: facility, rect: [0, 200, 110, 100]}
-  - {id: "facility:lift-west", label: "Lift", kind: facility, rect: [0, 300, 110, 110]}
-  - {id: "facility:ccd", label: "CCD café", kind: facility, rect: [0, 410, 110, 390]}
-  - {id: "facility:gents-north", label: "Gents", kind: facility, rect: [865, 0, 90, 120]}
-  - {id: "facility:water-north", label: "Water", kind: facility, rect: [955, 0, 85, 100]}
-  - {id: "facility:ladies-east", label: "Ladies", kind: facility, rect: [1040, 240, 200, 120]}
-  - {id: "facility:gents-south", label: "Gents", kind: facility, rect: [690, 690, 170, 110]}
-  - {id: "facility:ladies-south", label: "Ladies", kind: facility, rect: [860, 690, 180, 110]}
-  - {id: "facility:stairs-north", label: "Staircase", kind: stairs, rect: [420, 285, 300, 50], photo: staircase.jpg}
-  - {id: "facility:lift-north", label: "Lift", kind: facility, rect: [725, 285, 65, 50], photo: lifts.jpg}
-  - {id: "facility:stairs-south", label: "Staircase", kind: stairs, rect: [425, 585, 305, 50], photo: staircase.jpg}
-  - {id: "facility:lift-south", label: "Lift", kind: facility, rect: [745, 585, 65, 50], photo: lifts.jpg}
+  - {id: "facility:water-west", label: "Water", kind: facility, rect: [0, 200, 110, 100], door: [110, 250], via: n155, spoken: "the water dispenser"}
+  - {id: "facility:lift-west", label: "Lift", kind: facility, rect: [0, 300, 110, 110], door: [110, 355], via: w355, photo: lifts.jpg, spoken: "the west lift"}
+  - {id: "facility:ccd", label: "CCD café", kind: facility, rect: [0, 410, 110, 390], door: [110, 460], via: w460, spoken: "the CCD café"}
+  - {id: "facility:gents-north", label: "Gents", kind: facility, rect: [865, 0, 90, 120], door: [955, 110], via: e110, spoken: "the gents washroom"}
+  - {id: "facility:water-north", label: "Water", kind: facility, rect: [955, 0, 85, 100], door: [1000, 100], via: e110, spoken: "the water dispenser"}
+  - {id: "facility:ladies-east", label: "Ladies", kind: facility, rect: [1040, 240, 200, 120], door: [1040, 300], via: e300, spoken: "the ladies washroom"}
+  - {id: "facility:gents-south", label: "Gents", kind: facility, rect: [690, 690, 170, 110], door: [775, 690], via: s775, spoken: "the gents washroom"}
+  - {id: "facility:ladies-south", label: "Ladies", kind: facility, rect: [860, 690, 180, 110], door: [945, 690], via: s945, spoken: "the ladies washroom"}
+  - {id: "facility:stairs-north", label: "Staircase", kind: stairs, rect: [420, 285, 300, 50], door: [580, 335], via: h_n, photo: staircase.jpg, spoken: "the north staircase"}
+  - {id: "facility:lift-north", label: "Lift", kind: facility, rect: [725, 285, 65, 50], door: [757, 335], via: lift_n, photo: lifts.jpg, spoken: "the north lift"}
+  - {id: "facility:stairs-south", label: "Staircase", kind: stairs, rect: [425, 585, 305, 50], door: [580, 585], via: h_s, photo: staircase.jpg, spoken: "the south staircase"}
+  - {id: "facility:lift-south", label: "Lift", kind: facility, rect: [745, 585, 65, 50], door: [777, 585], via: lift_s, photo: lifts.jpg, spoken: "the south lift"}
 
   # ---- outer rooms (from the board) ----
   - {id: "room:815", label: "815", kind: room, rect: [1040, 0, 200, 120], door: [1040, 110], via: e110}
@@ -231,7 +249,7 @@ places:
   - {id: "room:888", label: "888", kind: room, rect: [315, 100, 65, 75], door: [350, 100], via: m350, photo: room-888.jpg}
   - {id: "room:885", label: "885", kind: room, rect: [405, 100, 70, 75], door: [440, 100], via: m440, photo: room-885.jpg}
   - {id: "room:884", label: "884", kind: room, rect: [475, 100, 70, 75], door: [510, 100], via: m510, photo: room-884.jpg}
-  - {id: "room:883", label: "883", kind: room, rect: [585, 100, 60, 75], door: [615, 100], via: m615, photo: room-883.jpg}
+  - {id: "room:883", label: "883", kind: room, rect: [545, 100, 60, 75], door: [575, 100], via: m575, photo: room-883.jpg}
   - {id: "room:882", label: "882", kind: room, rect: [645, 100, 60, 75], door: [675, 100], via: m675, photo: room-882.jpg}
   - {id: "room:881", label: "881", kind: room, rect: [705, 100, 60, 75], door: [735, 100], via: m735, photo: room-881.jpg}
   # east end
