@@ -229,3 +229,29 @@ def test_names_from_the_sheet_read_naturally():
     assert nice_name("Dr SHIVANGI SINGH") == "Dr Shivangi Singh"
     assert nice_name("Dr NIZAR BANU P K") == "Dr Nizar Banu P K"
     assert nice_name("Dr Helen K Joy") == "Dr Helen K Joy"
+
+
+def test_a_password_reset_from_the_command_line_works_while_the_kiosk_runs(admin, settings):
+    from kiosk_ui.admin_store import AdminStore
+
+    AdminStore(settings.admin.data_dir).set_password("office", "brand new pass")  # what reset-password does
+    admin.post("/api/admin/logout")
+    assert admin.post("/api/admin/login", json={"username": "office", "password": "correct horse"}).status_code == 401
+    assert admin.post("/api/admin/login", json={"username": "office", "password": "brand new pass"}).status_code == 200
+
+
+def test_forgot_password_on_the_kiosk_computer_only(admin, settings, voice_memory, rag):
+    admin.post("/api/admin/logout")
+    for _ in range(5):  # locked out
+        admin.post("/api/admin/login", json={"username": "office", "password": "forgot it"})
+    assert admin.post("/api/admin/reset-local", json={"username": "nobody", "password": "whatever1"}).status_code == 404
+    assert admin.post("/api/admin/reset-local", json={"username": "office", "password": "short"}).status_code == 422
+    assert admin.post("/api/admin/reset-local", json={"username": "Office", "password": "remembered now"}).status_code == 200
+    assert admin.post("/api/admin/login", json={"username": "office", "password": "remembered now"}).status_code == 200
+    assert "reset their password on the kiosk computer" in [e["action"] for e in admin.get("/api/admin/audit").json()]
+    # from another computer on the Wi-Fi: refused
+    with TestClient(create_app(settings, transport=voice_memory, rag_transport=rag.transport()),
+                    client=("192.168.1.50", 50000)) as other:
+        r = other.post("/api/admin/reset-local", json={"username": "office", "password": "taken over!"})
+        assert r.status_code == 403
+        assert other.get("/api/admin/setup").json()["local"] is False

@@ -105,6 +105,15 @@ also be tapped on the map. No photo yet: 875, 880, 886, 887, 889, the C817 doorw
 To add one: put a JPG in `data/photos/` (landscape or portrait, no people, ideally under 400 KB) and add
 `photo: <file>` to the node or place in `data/floor_map.yaml`.
 
+**23 November photos:** doors of all eight classrooms 808-815 (read from their C8xx tags), the south Gents and
+Ladies washrooms (beside the Placement Office and the MCA Lab), the west lift and water dispenser, the south lift
+(and the view stepping out of it), the CCD café, the open hall, and five **corridor views**. Faces were blurred
+(pixelated, not reversible) before resizing; no phone metadata is kept. A corridor view sits on a node with the way
+the camera faced (`view:` + `view_facing:`) and is shown with a step that walks that way past the node, so a visitor
+sees what is ahead of them and never a view of the corridor behind them. Still without a photo: cabins 875, 880,
+886, 887, 889; the north lift; the corridor views K, L, H, G and P from that set (where each was taken and which way
+it faces isn't known yet).
+
 ### 360° photos
 
 Put equirectangular 360° photos (JPG, the normal export of a 360 camera or phone panorama) in

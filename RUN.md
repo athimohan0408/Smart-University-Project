@@ -1,5 +1,9 @@
 # How to run the whole project (Windows, macOS, Linux)
 
+**Already set up on Windows?** Double-click `start-kiosk.bat` in this folder. Three windows open (rag-core 8000,
+voice-memory 8001, kiosk-ui 8002) and the kiosk opens in your browser after a minute. Close the three windows to stop.
+Pages: kiosk http://127.0.0.1:8002/ · analytics /dashboard · admin /admin · phone page /go · QR stickers /qr.
+
 You need **Python 3.11 or newer** and internet the first time (it downloads PyTorch and two small AI models).
 Open this folder in your IDE (Antigravity, VS Code, ...) and use its terminal.
 

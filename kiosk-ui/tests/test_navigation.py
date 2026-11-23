@@ -195,3 +195,16 @@ def test_nearest(fmap):
     assert fmap.nearest("way-down", "lift-north").place_id == "facility:stairs-north"
     assert fmap.nearest("lift").place_id.startswith("facility:lift-")
     assert fmap.nearest("helipad") is None
+
+
+def test_corridor_views_show_only_to_someone_walking_their_way(fmap):
+    west = fmap.route("room:808", "room:811")  # from the MCA Lab, west along the south corridor
+    assert "view-south-corridor-west.jpg" in west.step_photos
+    east = fmap.route("room:811", "room:808")  # the other way: that view would show the wrong end
+    assert not any(p and p.startswith("view-") for p in east.step_photos)
+    assert fmap.route("room:811").step_photos[-2] == "view-mca-lab-corridor.jpg"  # south, towards the lab
+    for p in fmap.places:  # every photo the map names is on disk
+        assert p.photo is None or (MAP.parent / "photos" / p.photo).exists(), p.id
+    for name, n in fmap.nodes.items():
+        for f in (n.photo, n.view):
+            assert f is None or (MAP.parent / "photos" / f).exists(), name
