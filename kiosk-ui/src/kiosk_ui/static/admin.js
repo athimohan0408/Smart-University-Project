@@ -62,6 +62,8 @@ async function gate() {
   $("setup").hidden = !(s.needs_setup && s.local);
   $("setup-remote").hidden = !(s.needs_setup && !s.local);
   $("signin").hidden = s.needs_setup;
+  $("forgot").hidden = true;
+  $("forgot-open").hidden = !s.local;  // a forgotten password is reset on the kiosk computer only
   (s.needs_setup ? $("setup") : $("signin")).querySelector("input")?.focus();
 }
 
@@ -84,6 +86,25 @@ for (const id of ["signin", "setup"]) {
     catch (x) { err.textContent = x.message; }
   });
 }
+$("forgot-open").addEventListener("click", () => {
+  $("signin").hidden = true;
+  $("forgot").hidden = false;
+  $("forgot").elements.username.value = $("signin").elements.username.value;
+  $("forgot").elements.password.focus();
+});
+$("forgot-back").addEventListener("click", () => { $("forgot").hidden = true; $("signin").hidden = false; });
+$("forgot").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("forgot").querySelector(".error");
+  const d = formData($("forgot"));
+  err.textContent = "";
+  if (d.password !== d.again) { err.textContent = "The two passwords are different."; return; }
+  try {
+    await call("/reset-local", { method: "POST", body: { username: d.username, password: d.password } });
+    signedIn(await call("/login", { method: "POST", body: { username: d.username, password: d.password } }));
+    $("forgot").reset();
+  } catch (x) { err.textContent = x.message; }
+});
 $("signout").addEventListener("click", async () => { await call("/logout", { method: "POST" }).catch(() => {}); S.me = null; gate(); });
 
 // ---------- tabs ----------

@@ -2,7 +2,8 @@
 (an HttpOnly session cookie); most need the ``admin`` role, and a ``faculty`` account can set only its own status.
 
 The very first admin account is created from the kiosk computer itself (``/admin`` on 127.0.0.1 offers it while
-there are no accounts). Locked out? ``python -m kiosk_ui.admin_api reset-password <username>`` on that computer.
+there are no accounts). Forgotten password? "Forgot password?" on the sign-in page, again only on the kiosk computer
+itself (from anywhere else it is refused), or ``python -m kiosk_ui.admin_api reset-password <username>`` there.
 """
 
 from __future__ import annotations
@@ -31,6 +32,11 @@ _PHOTO_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"
 class Login(BaseModel):
     username: str = Field(min_length=1, max_length=64)
     password: str = Field(min_length=1, max_length=200)
+
+
+class LocalReset(BaseModel):
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=8, max_length=200)
 
 
 class NewUser(BaseModel):
@@ -132,6 +138,21 @@ def create_admin_router(*, store: AdminStore, settings, kb, fmap, refresh_kiosk:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         store.log(user.username, "created the first admin account")
         return login(Login(username=body.username, password=body.password), response)
+
+    @router.post("/reset-local")
+    def reset_local(body: LocalReset, request: Request) -> dict:
+        """Forgotten password: a new one, set on the kiosk computer itself (like the first account). From any other
+        computer this is refused: there, an admin sets a new password from the Accounts tab."""
+        if (request.client.host if request.client else "") not in LOCAL:
+            raise HTTPException(status_code=403, detail="Reset a password on the kiosk computer itself, "
+                                "or ask the department office to set a new one for you.")
+        username = body.username.strip().casefold()
+        if username not in store.users:
+            raise HTTPException(status_code=404, detail="There's no account with that username.")
+        store.set_password(username, body.password)
+        store.unlock(username)
+        store.log(username, "reset their password on the kiosk computer")
+        return {"status": "changed"}
 
     @router.post("/login")
     def login(body: Login, response: Response) -> dict:

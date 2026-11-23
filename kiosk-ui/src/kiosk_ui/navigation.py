@@ -31,6 +31,10 @@ class Node(BaseModel):
     name: str | None = None  # a landmark the directions can name ("the Faculty Staff Room entrance")
     photo: str | None = None  # what the landmark looks like, a file name in data/photos/ (shown with its step)
     panorama: str | None = None  # 360-degree photo taken here, a file name in data/panoramas/
+    # a corridor view taken here looking one way (data/photos/): shown with a step that walks this way past here,
+    # so the visitor sees what is ahead of them; never shown to someone walking the other way
+    view: str | None = None
+    view_facing: str | None = None  # north / south / east / west: the way the camera pointed
 
 
 class Start(BaseModel):
@@ -151,6 +155,11 @@ class FloorMap(BaseModel):
             for n in (a, b):
                 if n not in self.nodes:
                     raise ValueError(f"edge {a}-{b}: unknown node {n!r}")
+        for name, node in self.nodes.items():
+            if (node.view is None) != (node.view_facing is None):
+                raise ValueError(f"node {name}: give both view and view_facing, or neither")
+            if node.view_facing is not None and node.view_facing not in _FACING:
+                raise ValueError(f"node {name}: view_facing must be one of {sorted(_FACING)}")
         seen: set[str] = set()
         for p in self.places:
             if p.id in seen:
@@ -241,7 +250,16 @@ class FloorMap(BaseModel):
         photo_of = {self.nodes[n].name: self.nodes[n].photo for n in names if self.nodes[n].name and self.nodes[n].photo}
         step_photos = [photo_of.get(lm) if lm else None for lm in landmark_of_step]
         if origin.photo and len(step_photos) > 1 and step_photos[0] is None:
-            step_photos[0] = origin.photo  # "Step out of the north lift ...": the lifts
+            step_photos[0] = origin.photo  # "With the north lift behind you ...": the lifts
+        for i, (a, b) in enumerate(spans[:-1]):  # a step with no landmark photo: a corridor view facing its way
+            if step_photos[i] is not None or math.dist(points[a], points[b]) < _EPS:
+                continue
+            way = _unit((points[b][0] - points[a][0], points[b][1] - points[a][1]))
+            for k in range(a, min(b, len(names) - 1) + 1):
+                node = self.nodes[names[k]]
+                if node.view and _dot(_FACING[node.view_facing], way) > 0.7:
+                    step_photos[i] = node.view
+                    break
         step_photos[-1] = place.photo  # the last step is "Room 874 is on your right": show its door
         step_metres = [round(sum(math.dist(points[k], points[k + 1]) for k in range(a, b)) * self.metres_per_unit, 1)
                        for a, b in spans]

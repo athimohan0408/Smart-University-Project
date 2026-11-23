@@ -117,8 +117,9 @@ class AdminStore:
         self._lock = threading.RLock()
         self._sessions: dict[str, tuple[str, float]] = {}
         self._fails: dict[str, tuple[int, float]] = {}
-        self.users: dict[str, User] = self._read("users.json", dict)
-        self.users = {k: User.model_validate(v) for k, v in self.users.items()}
+        self.users: dict[str, User] = {}
+        self._users_mtime = -1.0
+        self._refresh_users()
         self.state = State.model_validate(self._read("state.json", dict))
 
     # ---------- files ----------
@@ -140,6 +141,15 @@ class AdminStore:
 
     def _save_users(self) -> None:
         self._write("users.json", {k: u.model_dump() for k, u in self.users.items()})
+        self._users_mtime = (self.folder / "users.json").stat().st_mtime
+
+    def _refresh_users(self) -> None:
+        """Re-read users.json when it changed on disk (a password reset from the command line while the kiosk runs)."""
+        path = self.folder / "users.json"
+        mtime = path.stat().st_mtime if path.exists() else 0.0
+        if mtime != self._users_mtime:
+            self.users = {k: User.model_validate(v) for k, v in self._read("users.json", dict).items()}
+            self._users_mtime = mtime
 
     def log(self, user: str, action: str, detail: str = "") -> None:
         record = {"timestamp": _now(), "user": user, "action": action, "detail": detail}
@@ -183,6 +193,10 @@ class AdminStore:
             self._save_users()
             self._sessions = {t: s for t, s in self._sessions.items() if s[0] != username}  # sign out everywhere
 
+    def unlock(self, username: str) -> None:
+        """Forget wrong-password tries (after a password reset)."""
+        self._fails.pop(username.strip().casefold(), None)
+
     def remove_user(self, username: str) -> None:
         with self._lock:
             if self.users[username].role == "admin" and sum(u.role == "admin" for u in self.users.values()) == 1:
@@ -198,6 +212,8 @@ class AdminStore:
     def sign_in(self, username: str, password: str) -> str | None:
         """A session token, or None. Raises PermissionError while the account is locked."""
         username = username.strip().casefold()
+        with self._lock:
+            self._refresh_users()
         fails, locked_until = self._fails.get(username, (0, 0.0))
         if locked_until > time.time():
             raise PermissionError("too many wrong passwords: try again in a few minutes")

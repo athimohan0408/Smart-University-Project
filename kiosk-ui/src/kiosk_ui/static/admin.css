@@ -65,3 +65,4 @@
 .photo-row { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
 #pl-photo { width: 140px; max-height: 190px; object-fit: cover; border: 2px solid var(--gold); border-radius: var(--radius); }
 .stack > .btn, .gate-card > .btn { justify-self: start; }
+.link-btn.dark { justify-self: start; padding: 0; border: 0; color: var(--navy); font-weight: 600; text-decoration: underline; }

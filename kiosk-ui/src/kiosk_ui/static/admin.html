@@ -42,6 +42,18 @@
       <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
       <p class="error" role="alert"></p>
       <button class="btn btn-navy" type="submit">Sign in</button>
+      <button id="forgot-open" class="link-btn dark" type="button" hidden>Forgot password?</button>
+    </form>
+    <form id="forgot" class="card gate-card" hidden>
+      <h2>Set a new password</h2>
+      <p class="hint">This works only on the kiosk computer itself. On any other computer, ask the department office to
+        set a new password for you (Admin → Accounts).</p>
+      <label>Username <input name="username" autocomplete="username" required></label>
+      <label>New password (8 or more characters) <input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+      <label>New password again <input name="again" type="password" minlength="8" required autocomplete="new-password"></label>
+      <p class="error" role="alert"></p>
+      <button class="btn btn-navy" type="submit">Set password and sign in</button>
+      <button id="forgot-back" class="link-btn dark" type="button">Back to sign in</button>
     </form>
     <form id="setup" class="card gate-card" hidden>
       <h2>Create the first admin account</h2>
