@@ -134,3 +134,11 @@ button:disabled { opacity: .5; cursor: default; }
 .map .dest { fill: var(--gold); stroke: #fff; stroke-width: 4; }
 @keyframes march { to { stroke-dashoffset: -32; } }
 @media (prefers-reduced-motion: reduce) { .map .route { animation: none; } }
+
+/* one bar of links to every page (analytics and admin dashboards) */
+.site-nav { display: flex; flex-wrap: wrap; gap: 4px 22px; padding: 10px 32px; background: var(--navy-deep); }
+.site-nav a { color: rgba(255, 255, 255, .85); font-weight: 600; font-size: .9rem; text-decoration: none; padding: 2px 0;
+  border-bottom: 2px solid transparent; }
+.site-nav a:hover { color: #fff; border-bottom-color: var(--gold); }
+.site-nav a[aria-current="page"] { color: var(--gold); border-bottom-color: var(--gold); }
+@media (max-width: 900px) { .site-nav { padding: 8px 16px; } }
