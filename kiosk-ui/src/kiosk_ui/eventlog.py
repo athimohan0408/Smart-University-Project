@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Literal
 
 SCHEMA_VERSION = 1
-EventType = Literal["turn", "option_chosen", "receptionist_button", "session_reset", "error"]
+EventType = Literal["turn", "option_chosen", "receptionist_button", "session_reset", "error", "feedback"]
 
 
 class EventLog:

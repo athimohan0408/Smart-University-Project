@@ -38,6 +38,8 @@ function tiles(d) {
     ["Avg response", ms(d.response_time_ms.kiosk_round_trip?.mean ?? d.response_time_ms.voice_turn_total?.mean
       ?? d.response_time_ms.rag_server_total?.mean), "what the visitor waited"],
     ["Routes shown", fmt(t.routes_shown), `${fmt(t.receptionist_button)} receptionist button presses`],
+    ["Rated helpful", (t.helpful_yes + t.helpful_no) ? pct(t.helpful_yes / (t.helpful_yes + t.helpful_no)) : "–",
+      `${fmt(t.helpful_yes + t.helpful_no)} thumbs up / down on the kiosk`],
   ];
   $("tiles").replaceChildren(...items.map(([k, v, s]) => {
     const div = document.createElement("div");

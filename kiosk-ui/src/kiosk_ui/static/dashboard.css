@@ -39,3 +39,4 @@
 .small-map { margin-top: 12px; }
 
 .tip { position: fixed; pointer-events: none; background: var(--text); color: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: .85rem; z-index: 5; }
+.admin-link { text-decoration: none; padding: .6em 1.1em; border: 1px solid var(--navy); border-radius: var(--radius); }

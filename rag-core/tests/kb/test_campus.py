@@ -211,3 +211,78 @@ def test_upcoming_events_skip_past_ones(stack):
 def test_no_verified_data_declines(stack, question, intent):
     draft, _, _ = stack["ask"](question, intent)
     assert draft is None or not draft.answerable
+
+
+# --------------------------------------------------------------------------- the dataset's "Rooms" sheet
+
+
+@pytest.fixture(scope="module")
+def dataset_campus(lexicon):
+    from rag_core.kb.campus import load_campus_from_settings
+
+    return load_campus_from_settings(load_settings(DEFAULT_SETTINGS_PATH), lexicon)
+
+
+def test_rooms_sheet_loads_classrooms_lab_and_office(dataset_campus):
+    by_room = {p.room: p for p in dataset_campus.places}
+    assert sorted(by_room) == ["808", "809", "810", "811", "812", "813", "814", "815"]
+    assert dataset_campus.skipped == []
+    assert by_room["811"].kind == "lab" and by_room["811"].programmes == ["MCA"]
+    assert by_room["814"].kind == "classroom" and by_room["814"].programmes == ["MSAIM"]  # "MSc AIML" in the sheet
+    assert by_room["810"].kind == "placement_office" and "Rani M J" in by_room["810"].notes
+    assert by_room["808"].notes == "Class teacher: Dr Shivangi Singh (office room 871, Eighth Floor)"
+
+
+@pytest.fixture(scope="module")
+def dataset_stack(entity_kb, dataset_campus, lexicon):
+    settings = load_settings(DEFAULT_SETTINGS_PATH)
+    kb, glossary, _ = entity_kb
+    ctx = FactContext(glossary, "data/kb/glossary.yaml", settings.kb.home_block, settings.kb.home_floor,
+                      settings.facts.include_unverified_expansions)
+    facts = build_facts(kb, ctx, dataset_campus)
+    gazetteer = build_gazetteer(kb, glossary, lexicon, facts)
+    bm25 = BM25Index.build([f.fact_id for f in facts], [" ".join([f.text, *f.keywords]) for f in facts],
+                           k1=settings.retrieval.bm25_k1, b=settings.retrieval.bm25_b)
+    retriever = Retriever(FactCatalog(facts, topic_faculty(gazetteer)), FakeDense(facts), bm25, FakeEmbedder(),
+                          settings.retrieval)
+    extractor = EntityExtractor.from_settings(settings, gazetteer=gazetteer)
+    composer = FactComposer(settings.generation)
+    checker = GroundingChecker(extractor)
+
+    def ask(question, intent):
+        mentions = extractor.extract(question, now=NOW).mentions
+        retrieved = retriever.retrieve(question, intent, mentions)
+        draft = composer.compose(question, intent, mentions, retrieved, NOW)
+        assert draft is not None, question
+        return draft, checker.check(draft, retrieved, question=question, question_mentions=mentions, intent=intent)
+
+    return ask
+
+
+@pytest.mark.parametrize("question,expect,absent", [
+    ("where is the MSc AIML classroom?", ["room 815", "room 814"], ["MCA"]),
+    ("where is the MSc AI and ML classroom", ["room 815", "room 814"], ["MCA"]),  # the problem statement's example
+    ("where is the MCA semester 5 section A classroom", ["room 808", "Dr Shivangi Singh"], ["809", "812"]),
+    ("where is the 2nd sem MCA section B class room", ["room 813", "Dr Binayak Dutta"], ["808"]),
+    ("where is the MCA lab", ["MCA Lab is in room 811"], []),
+    ("where is room 815", ["MSc AIML classroom, semester 5", "Dr Rajesh Kanna R"], []),
+    ("where is the placement office", ["room 810", "Rani M J"], []),
+])
+def test_dataset_rooms_are_answered_and_grounded(dataset_stack, question, expect, absent):
+    draft, grounding = dataset_stack(question, Intent.FIND_ROOM)
+    assert draft.answerable, draft.answer
+    for text in expect:
+        assert text in draft.answer, (text, draft.answer)
+    for text in absent:
+        assert text not in draft.answer, (text, draft.answer)
+    assert grounding.passed, grounding.issues
+
+
+@pytest.mark.parametrize("question,expect", [
+    ("Where is the AI lab?", "I can't find an AI lab in my records. The ones I know of: MCA Lab."),
+    ("where is the robotics lab", "I can't find a robotics lab"),
+])
+def test_a_place_that_is_not_listed_is_never_answered_with_another(dataset_stack, question, expect):
+    draft, grounding = dataset_stack(question, Intent.FIND_ROOM)
+    assert not draft.answerable and expect in draft.answer and "room 811" not in draft.answer
+    assert grounding.passed

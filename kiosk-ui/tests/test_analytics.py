@@ -87,3 +87,12 @@ def test_timing_percentiles_match_numpy_linear():
 def test_evaluation_sessions_are_not_counted_as_visitors():
     rag = [q("Where is room 874?", session="kiosk-01-abc"), q("Where is room 874?", session="eval-e10-120000-ab12")]
     assert compute(rag, [], [], now=NOW).totals.questions == 1
+
+
+def test_answer_ratings_are_counted():
+    ui = [{"timestamp": NOW.isoformat(), "event": "feedback", "session_id": "a", "turn_id": "t1", "helpful": True},
+          {"timestamp": NOW.isoformat(), "event": "feedback", "session_id": "b", "turn_id": "t2", "helpful": True},
+          {"timestamp": NOW.isoformat(), "event": "feedback", "session_id": "c", "turn_id": "t3", "helpful": False},
+          {"timestamp": NOW.isoformat(), "event": "feedback", "session_id": "eval-x", "helpful": False}]  # a test run
+    d = compute([], [], ui, now=NOW)
+    assert (d.totals.helpful_yes, d.totals.helpful_no) == (2, 1)

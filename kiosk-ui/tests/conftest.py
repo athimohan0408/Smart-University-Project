@@ -16,17 +16,24 @@ def settings(tmp_path: Path) -> Settings:
     raw = yaml.safe_load((MODULE_ROOT / "config" / "settings.yaml").read_text(encoding="utf-8"))
     raw["map"]["file"] = str(MODULE_ROOT / "data" / "floor_map.yaml")
     raw["kiosk"]["speak"] = False  # no voice model in tests (the greeting would load Piper)
+    raw["api"]["host"] = "127.0.0.1"  # not on the network: no Wi-Fi address in QR codes unless a test asks
     raw["logs"] = {"ui_events": str(tmp_path / "ui_events.jsonl"), "rag_queries": str(tmp_path / "queries.jsonl"),
                    "voice_turns": str(tmp_path / "turns.jsonl")}
     faculty = {"faculty": [
         {"id": "nisha-varghese", "title": "Dr", "full_name": "Nisha Varghese",
-         "location": {"block": "Central Block", "floor": "Eighth Floor", "room": "874", "on_8th_floor": True}},
+         "location": {"block": "Central Block", "floor": "Eighth Floor", "room": "874", "on_8th_floor": True},
+         "timetable": [{"day": "Monday", "start_time": "09:45", "end_time": "11:45", "subject_code": "ML"}],
+         "consultation_hours": {"slots": [{"day": "Monday", "start": "13:45", "end": "14:45"},
+                                          {"day": "Wednesday", "start": "11:45", "end": "12:45"}]}},
         {"id": "jossy-p-george", "title": "Dr", "full_name": "Jossy P George",
          "location": {"block": "Block I", "floor": "Ground Floor", "room": "014", "on_8th_floor": False}},
         {"id": "naived-george-eapen", "title": "Dr", "full_name": "Naived George Eapen", "location": {}},
     ]}
     (tmp_path / "faculty.json").write_text(json.dumps(faculty), encoding="utf-8")
     raw["kb"] = {"faculty_json": str(tmp_path / "faculty.json")}
+    # the admin dashboard: its own folder, and a stand-in for rag-core's workbook (never the real one)
+    raw["admin"] = {"data_dir": str(tmp_path / "admin"), "rag_url": "http://rag.test",
+                    "timetable_file": str(tmp_path / "rag" / "faculty.xlsx"), "reload_timeout_s": 5}
     path = tmp_path / "settings.yaml"
     path.write_text(yaml.safe_dump(raw), encoding="utf-8")
     return load_settings(path)

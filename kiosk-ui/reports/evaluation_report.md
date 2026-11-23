@@ -1,6 +1,6 @@
 # Final evaluation report
 
-Generated 2026-11-04T21:42:33 by `python -m kiosk_ui.evaluate` from `test_set.jsonl` (26 scenarios, 29 turns).
+Generated 2026-11-05T08:24:31 by `python -m kiosk_ui.evaluate` from `test_set.jsonl` (26 scenarios, 29 turns).
 Every turn went through the kiosk (Portion 3) -> voice-memory (Portion 2) -> rag-core (Portion 1).
 
 ## Summary (end to end)
@@ -14,8 +14,8 @@ Every turn went through the kiosk (Portion 3) -> voice-memory (Portion 2) -> rag
 | escalations that should happen and did | 100.0% (4/4) |
 | answerable questions wrongly escalated | 0.0% (0/21) |
 | all escalations in the run | 5 |
-| response time at the kiosk (typed) | mean 3857.9 ms, p50 3717.8 ms, p95 5887.4 ms |
-| voice-memory turn total | mean 3781.8 ms, p95 5788.8 ms |
+| response time at the kiosk (typed) | mean 874.2 ms, p50 664.2 ms, p95 1798.6 ms |
+| voice-memory turn total | mean 853.5 ms, p95 1766.9 ms |
 
 ## By category
 
@@ -45,12 +45,12 @@ None.
 ## Floor map
 
 - Map: `floor_map.yaml`, 26 routable places, verified on the floor: **not yet**; drawn from the department's 8th Floor Layout Plan board and a hand sketch of the Faculty Staff Room.
-- 8th-floor rooms in the faculty data: 14; missing from the map: none.
+- 8th-floor rooms in the faculty data: 15; missing from the map: none.
 - The drawings are not to scale: distances are approximate. Walk the routes once, then set `verified: true` in the map file.
 
 ## Kiosk usage (from the analytics log)
 
-714 kiosk events logged so far (includes this evaluation run).
+790 kiosk events logged so far (includes this evaluation run).
 
 ## Numbers from the other modules
 
@@ -60,7 +60,7 @@ None.
 
 - Test set: `data/eval/entities_test.jsonl`, 105 questions (sha256 `34527a3441cc`).
 - Fuzzy cut-off `thresholds.entity_match_min` = 85, ambiguity margin 3 points.
-- Target: micro F1 >= 0.90 and every ambiguous name flagged: **PASS** (F1 1.000; ambiguous flagged 3/3, silently resolved 0).
+- Target: micro F1 >= 0.90 and every ambiguous name flagged: **PASS** (F1 0.997; ambiguous flagged 3/3, silently resolved 0).
 
 ##### Precision / recall / F1 by type
 
@@ -69,19 +69,122 @@ None.
 | faculty | 1.00 | 1.00 | 1.00 | 55 | 55 |
 | room | 1.00 | 1.00 | 1.00 | 9 | 9 |
 | programme | 1.00 | 1.00 | 1.00 | 13 | 13 |
-| course | 1.00 | 1.00 | 1.00 | 13 | 13 |
+| course | 0.93 | 1.00 | 0.96 | 13 | 14 |
 | topic | 1.00 | 1.00 | 1.00 | 15 | 15 |
 | day | 1.00 | 1.00 | 1.00 | 10 | 10 |
 | time | 1.00 | 1.00 | 1.00 | 14 | 14 |
 | facility | 1.00 | 1.00 | 1.00 | 9 | 9 |
 | event | 1.00 | 1.00 | 1.00 | 6 | 6 |
-| **all (micro)** | **1.000** | **1.000** | **1.000** | 144 | 144 |
+| **all (micro)** | **0.993** | **1.000** | **0.997** | 144 | 145 |
 
-##### Errors: 0 questions
+##### Errors: 1 questions
 
-None.
+| question | missed (gold) | spurious (predicted) |
+|---|---|---|
+| computer vision faculty | · | course:cv |
 
 Limits: the gold set and the rules were written by the same author, so this is optimistic. Label real kiosk questions before trusting it. Add new questions for failures instead of bending rules to individual test items.
+
+### rag-core (`eval_20261105_082100.md`)
+
+#### End-to-end evaluation (test split)
+
+- Run 20261105_082100. Gold set `data/eval/qa_test.jsonl` (sha256 `c745335a8b60`), 120 test questions.
+- **Mode: TEMPLATE**. Answer sources: {'template': 111, 'none': 2, 'canned': 7}.
+- Generation: **templates (no LLM)**; confidence: weighted formula (not calibrated); escalation threshold 0.45.
+
+##### Headline metrics
+
+| metric | value | baseline | change |
+|---|---|---|---|
+| 1. Intent accuracy (top-1) | 91.7% | 91.7% | +0.0 pts |
+| 2. Retrieval Recall@5 | 100.0% | 100.0% | +0.0 pts |
+| 3. QA accuracy | 97.5% | 100.0% | -2.5 pts |
+| 4a. Hallucination rate (answered questions) | 0.0% | 0.0% | +0.0 pts |
+| 4b. Unanswerable questions answered confidently | 5.7% | 0.0% | +5.7 pts |
+
+##### All metrics
+
+| metric | value |
+|---|---|
+| intent macro F1 | 0.927 |
+| retrieval Hit@1 / Recall@5 / MRR (n=98) | 0.847 / 1.000 / 0.918 |
+| QA accuracy: answerable / unanswerable | 98.8% / 94.3% |
+| escalation precision / recall | 97.1% / 94.3% |
+| coverage (answered) / accuracy of answered | 71.7% / 97.7% |
+| entity linking micro F1 | 0.956 |
+| wrong-person answers (answered about someone other than the gold person) | 0 (0.0% of answered) |
+| LLM-as-judge accuracy (not the headline) | not run (--judge) |
+
+##### Latency per stage (ms)
+
+| stage | mean | p50 | p95 |
+|---|---|---|---|
+| nlu | 68.4 | 61.1 | 98.5 |
+| retrieval | 8.0 | 8.2 | 11.9 |
+| generation | 0.2 | 0.1 | 0.4 |
+| scoring | 8.4 | 6.8 | 18.7 |
+| total | 85.0 | 78.0 | 120.4 |
+
+##### By difficulty
+
+| difficulty | n | QA accuracy | escalated | hallucinated | intent accuracy |
+|---|---|---|---|---|---|
+| adversarial | 11 | 100.0% | 54.5% | 0 | 90.9% |
+| asr_noise | 3 | 100.0% | 0.0% | 0 | 100.0% |
+| easy | 57 | 96.5% | 31.6% | 0 | 91.2% |
+| misspelt | 3 | 100.0% | 0.0% | 0 | 100.0% |
+| multi_entity | 5 | 100.0% | 0.0% | 0 | 80.0% |
+| off_floor | 9 | 100.0% | 0.0% | 0 | 88.9% |
+| paraphrase | 32 | 96.9% | 31.2% | 0 | 93.8% |
+
+##### By category
+
+| category | n | QA accuracy | escalated | hallucinated | intent accuracy |
+|---|---|---|---|---|---|
+| classroom | 4 | 50.0% | 50.0% | 0 | 75.0% |
+| consultation | 15 | 100.0% | 20.0% | 0 | 100.0% |
+| contact | 15 | 100.0% | 66.7% | 0 | 100.0% |
+| conversation | 5 | 100.0% | 20.0% | 0 | 100.0% |
+| course | 3 | 100.0% | 0.0% | 0 | 100.0% |
+| event | 3 | 100.0% | 100.0% | 0 | 100.0% |
+| facility | 4 | 100.0% | 100.0% | 0 | 100.0% |
+| location | 29 | 100.0% | 10.3% | 0 | 96.6% |
+| out_of_scope | 4 | 100.0% | 100.0% | 0 | 50.0% |
+| profile | 5 | 100.0% | 20.0% | 0 | 60.0% |
+| programme | 3 | 100.0% | 0.0% | 0 | 100.0% |
+| research | 5 | 80.0% | 20.0% | 0 | 100.0% |
+| room | 8 | 100.0% | 25.0% | 0 | 62.5% |
+| schedule | 8 | 100.0% | 0.0% | 0 | 87.5% |
+| teaching | 9 | 100.0% | 0.0% | 0 | 100.0% |
+
+##### Intent confusion matrix (rows gold, columns predicted)
+
+| gold \ predicted | find person | person avail | find by subj | find room | schedule que | programme in | event info | facility inf | contact info | greeting | smalltalk or | escalate to  | out of scope |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| find_person | 31 | 1 | 2 | 2 |  |  |  |  |  |  |  |  |  |
+| person_availability |  | 15 |  |  |  |  |  |  |  |  |  |  |  |
+| find_by_subject |  |  | 12 |  |  |  |  |  |  |  |  |  |  |
+| find_room | 1 |  |  | 9 |  | 1 |  |  |  |  |  |  |  |
+| schedule_query |  |  | 1 |  | 9 |  |  |  |  |  |  |  |  |
+| programme_info |  |  |  |  |  | 6 |  |  |  |  |  |  |  |
+| event_info |  |  |  |  |  |  | 3 |  |  |  |  |  |  |
+| facility_info |  |  |  |  |  |  |  | 3 |  |  |  |  |  |
+| contact_info |  |  |  |  |  |  |  |  | 15 |  |  |  |  |
+| greeting |  |  |  |  |  |  |  |  |  | 2 |  |  |  |
+| smalltalk_or_thanks |  |  |  |  |  |  |  |  |  |  | 2 |  |  |
+| escalate_to_human |  |  |  |  |  |  |  |  |  |  |  | 1 |  |
+| out_of_scope | 1 |  |  |  |  | 1 |  |  |  |  |  |  | 2 |
+
+##### Wrong answers: 3 (details in failures.csv)
+
+| id | question | failure | answer |
+|---|---|---|---|
+| qa095 | Who is the expert on computer vision? | entities, escalated:grounding_failed | I'm sorry, I can't verify that. Please check with the receptionist at the desk. |
+| qa122 | Where do MCA students have their classes? | answered_unanswerable | MCA classroom, semester 2, section B is in room 813, Central Block, Eighth Floor, here on this floor. MCA classroom, semester 5, section B is in room 809, Central Block, Eighth Floor, here on this floor. MCA classroom, semester 2, section A is in room 812, Central Block, Eighth Floor, here on this floor. There is 1 more listed; please ask at the desk for the others. |
+| qa125 | which room is the 2nd semester MCA class in | answered_unanswerable | MCA classroom, semester 2, section B is in room 813, Central Block, Eighth Floor, here on this floor. MCA classroom, semester 2, section A is in room 812, Central Block, Eighth Floor, here on this floor. |
+
+Limits: the gold set was written by the same author as the rules and templates, so these numbers are optimistic. Label real kiosk questions before trusting them.
 
 ### rag-core (`eval_integrity.md`)
 

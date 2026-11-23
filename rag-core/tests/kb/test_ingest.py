@@ -197,7 +197,7 @@ def by_id(records):
 
 
 def test_every_sheet_row_produces_exactly_one_record(records, sheet_rows):
-    assert len(records) == len(sheet_rows) == 36
+    assert len(records) == len(sheet_rows) == 37  # 36 faculty + the receptionist (Rani M J), dataset of 2026-11
     assert sorted(r.source_row for r in records) == sorted(sheet_rows)
     assert len({r.id for r in records}) == len(records)
     for r in records:
@@ -221,7 +221,7 @@ def test_missing_email_is_none_not_guessed(records, by_id):
 
 
 def test_on_8th_floor(records, by_id):
-    assert sum(r.location.on_8th_floor for r in records) == 18
+    assert sum(r.location.on_8th_floor for r in records) == 19  # incl. Rani M J, room 810
     assert by_id["deepa-v-jose"].location.on_8th_floor
     assert not by_id["peter-augustin-d"].location.on_8th_floor  # Central Block, but Ninth Floor
     suresh = by_id["suresh-k"].location

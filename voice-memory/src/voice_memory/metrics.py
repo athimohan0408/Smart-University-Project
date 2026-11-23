@@ -11,6 +11,9 @@ itself. A *query* is one information need and may span turns:
 - an ``answered`` turn completes a query (a clarification followed by an answer is ONE completed query);
 - an ``escalated`` or ``handoff`` turn ends the query without completing it;
 - a ``clarification`` left open when the session ends counts as ``abandoned``;
+- a message or meeting request that was sent (``task_done``) completes a query; turns inside the dialogue
+  (``task``) and one the visitor called off (``task_cancelled``) are not queries of their own;
+- an utterance with several questions is logged as one record per question (``part`` / ``of``), so each counts;
 - greetings/thanks (``social``), yes/no replies to the hand-off offer (``offer_reply``) and ``no_speech``
   are not queries.
 completion rate = completed / (completed + escalated + abandoned). Sessions split on
@@ -104,7 +107,7 @@ def completion(records: Sequence[dict], idle_s: float) -> Completion:
             outcome = r["outcome"]
             if r.get("offer_reply"):
                 continue  # "yes, call the receptionist": the query was already counted when it escalated
-            if outcome == "answered":
+            if outcome in ("answered", "task_done"):
                 completed += 1
                 s_done += 1
                 open_query = False
@@ -136,9 +139,11 @@ def compute(records: Sequence[dict], idle_s: float) -> MetricsReport:
             latency[stage] = stats
     by_input = {}
     for source in sorted({r.get("input", "text") for r in records}):
-        if stats := _stats([r["latency_ms"]["total"] for r in records if r.get("input", "text") == source]):
+        if stats := _stats([r["latency_ms"]["total"] for r in records
+                            if r.get("input", "text") == source and "total" in r.get("latency_ms", {})]):
             by_input[source] = stats
-    queries = [r for r in records if r["outcome"] not in ("social", "no_speech") and not r.get("offer_reply")]
+    queries = [r for r in records if r["outcome"] not in ("social", "no_speech", "task", "task_cancelled")
+               and not r.get("offer_reply")]
     rewritten = [r for r in queries if r.get("rewritten")]
     return MetricsReport(
         turns=len(records), latency=latency, latency_by_input=by_input, completion=completion(records, idle_s),

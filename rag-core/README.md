@@ -95,7 +95,7 @@ Notes for specific modules:
 |---|---|
 | every tunable (models, thresholds, top-k, LLM provider and model, API host and port) | `config/settings.yaml`. No magic numbers in code. |
 | secrets (API keys) | `.env` only (git-ignored; template in `.env.example`) |
-| source data (read-only) | `data/raw/8th_floor_faculty_final_data.xlsx`, the problem statement `.docx`, and `data/raw/campus_info.xlsx` (classrooms, labs, facilities, events; filled in by the department, `just campus-check` validates it) |
+| source data (read-only) | `data/raw/8th_floor_faculty_with_subjects.xlsx` (sheets: 8th Floor Faculty, 37 people; Rooms, 808-815, loaded as campus places; Subject Codes, copied into the glossary by `just sync-glossary`; Teacher Subjects, not read: it repeats the timetable), the problem statement `.docx`, and `data/raw/campus_info.xlsx` (classrooms, labs, facilities, events; filled in by the department, `just campus-check` validates it) |
 | hand-maintained vocab | `data/kb/glossary.yaml` (subject/programme code names), `data/kb/entity_lexicon.yaml` (facility words, honorifics, words around names) |
 | generated (rebuild with `just index` / `just train-intent`) | `data/processed/`, `data/index/`, `data/models/` |
 | gold sets | `data/eval/` (QA, retrieval, entities, intent) |

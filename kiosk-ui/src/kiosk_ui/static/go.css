@@ -1,0 +1,53 @@
+/* The phone walkthrough (/go): one column, big tap targets, the same wayfinding look as the kiosk. */
+body.go { max-width: 640px; margin: 0 auto; padding: 0 0 env(safe-area-inset-bottom); font-size: 16px; min-height: 100vh; }
+.go-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #fff; border-bottom: 3px solid var(--gold); }
+.go-logo { height: 40px; width: auto; }
+.go-head h1 { color: var(--navy); font-size: 1.4rem; }
+.go-from { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--navy-deep); color: #fff; }
+.go-from span { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+.go-from select { flex: 1; min-width: 0; font: 600 1rem var(--sans); padding: .55em .6em; border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, .5); background: var(--navy); color: #fff; }
+
+.go-pick { display: grid; gap: 12px; padding: 14px 16px; }
+.go-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+.go-quick .btn { font-size: .9rem; padding: .6em .9em; flex: 1 1 auto; }
+.go-search { width: 100%; font: inherit; padding: .8em 1em; border: 1px solid var(--navy); border-radius: var(--radius); background: #fff; }
+.go-list details { border-top: 1px solid var(--rule); }
+.go-list summary { padding: .8em 0; font-weight: 700; color: var(--navy); cursor: pointer; }
+.go-list ul { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.go-list button { width: 100%; text-align: left; display: grid; gap: 1px; padding: .7em .9em; border: 1px solid var(--rule); background: #fff; }
+.go-list button span { font-size: .85rem; color: var(--ink-2); }
+.go-list button span:empty { display: none; }
+.go-list strong { color: var(--navy); font-weight: 600; }
+.go-overview { margin-top: 4px; }
+
+.go-walk { display: grid; gap: 12px; padding: 0 0 14px; }
+.go-banner { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; padding: 14px 16px;
+  background: var(--navy-deep); color: #fff; border-bottom: 4px solid var(--gold); position: sticky; top: 0; z-index: 2; }
+.go-arrow { width: 56px; height: 56px; border-radius: var(--radius); background: var(--gold); display: grid; place-items: center; }
+.go-arrow svg { width: 38px; height: 38px; fill: var(--navy-ink); }
+.go-walk.arrived .go-arrow { background: #fff; }
+.go-walk.arrived .go-arrow svg { fill: var(--here); }
+.go-dist { font: 600 1.4rem/1.1 var(--serif); color: var(--gold); }
+.go-instr { font: 600 1.1rem/1.35 var(--sans); margin-top: 2px; }
+.go-then { font-size: .85rem; color: rgba(255, 255, 255, .7); margin-top: 4px; }
+.go-then:empty { display: none; }
+.go-photo { margin: 0 16px; position: relative; border-radius: var(--radius); overflow: hidden; background: #000; }
+.go-photo img { width: 100%; max-height: 42vh; object-fit: contain; display: block; }
+.go-photo figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 12px; background: var(--gold);
+  color: var(--navy-ink); font-weight: 700; }
+.go-map { margin: 0 16px; }
+.go-progress { padding: 0 16px; color: var(--ink-2); font-size: .9rem; }
+.go-controls { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; padding: 0 16px; }
+.go-controls .btn { padding: .85em .6em; font-size: 1rem; }
+.go-again { margin: 0 16px; border: 0; padding: .6em 0; color: var(--navy); font-weight: 600; text-decoration: underline; justify-self: start; }
+.go-foot { color: var(--ink-2); font-size: .78rem; padding: 12px 16px 24px; border-top: 1px solid var(--rule); }
+
+/* the route map: 3D (default) or 2D, with a switch in its corner */
+.go-mapbox { position: relative; margin: 0 16px; }
+.go-mapbox .go-map { margin: 0; }
+.go-map3d { height: min(58vh, 460px); border-radius: var(--radius); overflow: hidden; background: var(--navy-deep);
+  touch-action: none; }
+.go-map3d canvas { width: 100% !important; height: 100% !important; display: block; }
+.go-dim { position: absolute; top: 8px; right: 8px; z-index: 1; font-size: .85rem; font-weight: 700; padding: .45em .8em;
+  background: rgba(255, 255, 255, .92); color: var(--navy); border: 1px solid var(--navy); }

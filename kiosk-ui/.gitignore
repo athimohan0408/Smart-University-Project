@@ -1,3 +1,5 @@
 # Generated at run time; rebuild as described in README.md
 logs/
 reports/evaluation_results.jsonl
+# the admin dashboard's accounts, changes and timetable versions (data/admin/): live data, never commit
+data/admin/

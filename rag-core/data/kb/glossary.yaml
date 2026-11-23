@@ -9,8 +9,12 @@
 #                        (thresholds.unverified_glossary_weight in config/settings.yaml).
 #   verified: true    -> confirmed by the department. Only set this after confirmation.
 #
-# Pre-filled expansions are standard abbreviations only; ALL entries are unverified until the
-# department confirms them. Keys are the codes exactly as they appear in the timetable.
+# Keys are the codes exactly as they appear in the timetable.
+#
+# SUBJECTS come from the department's dataset (data/raw/8th_floor_faculty_with_subjects.xlsx, sheet "Subject Codes",
+# rows with Status "Done"): `just sync-glossary` copies their full forms here as verified: true. Edit the sheet,
+# not these lines, then sync and `just index`. A test fails when this file and the sheet disagree.
+# PROGRAMMES are not in that sheet and are still unverified.
 
 programmes:
   BCA:
@@ -40,161 +44,161 @@ programmes:
 
 subjects:
   ACTIVITY:
-    full_name: TODO
+    full_name: Activity period
     aliases: []
-    verified: false
+    verified: true
   ADA:
-    full_name: TODO
+    full_name: Advanced Data Analytics
     aliases: []
-    verified: false
+    verified: true
   AMI:
-    full_name: TODO
+    full_name: Applied Machine Intelligence
     aliases: []
-    verified: false
+    verified: true
   BI:
-    full_name: TODO
+    full_name: Business Intelligence
     aliases: []
-    verified: false
+    verified: true
   BT/DF:
     # Written as one code in the sheet ("7 BCA BT/DF").
-    full_name: TODO
+    full_name: Blockchain Technology / Digital Forensics
     aliases: []
-    verified: false
+    verified: true
   C PROG:
-    full_name: TODO
+    full_name: C Programming
     aliases: []
-    verified: false
+    verified: true
   CN:
     full_name: Computer Networks
     aliases: []
-    verified: false
+    verified: true
   CPCG:
     # Also appears bare (no programme or semester) in some timetable lines.
-    full_name: TODO
+    full_name: Centre for Placement and Career Guidance
     aliases: []
-    verified: false
+    verified: true
   CSA:
     # Only seen in "MSC CSA"; may be a programme/stream name rather than a subject.
-    full_name: TODO
+    full_name: MSc Computer Science and Applications
     aliases: []
-    verified: false
+    verified: true
   CV:
-    full_name: TODO
+    full_name: Computer Vision
     aliases: []
-    verified: false
+    verified: true
   DAA:
-    full_name: TODO
+    full_name: Design and Analysis of Algorithms
     aliases: []
-    verified: false
+    verified: true
   DBMS:
     full_name: Database Management Systems
     aliases: []
-    verified: false
+    verified: true
   DEV:
-    full_name: TODO
+    full_name: DevOps
     aliases: []
-    verified: false
+    verified: true
   DF:
     # Distinct from the combined code BT/DF.
-    full_name: TODO
+    full_name: Digital Forensics
     aliases: []
-    verified: false
+    verified: true
   DLD:
-    full_name: TODO
+    full_name: Digital Logic Design
     aliases: []
-    verified: false
+    verified: true
   DSA:
     full_name: Data Structures and Algorithms
     aliases: []
-    verified: false
+    verified: true
   DV:
-    full_name: TODO
+    full_name: Data Visualization
     aliases: []
-    verified: false
+    verified: true
   FSD:
-    full_name: TODO
+    full_name: Full Stack Development
     aliases: []
-    verified: false
+    verified: true
   IoT:
     full_name: Internet of Things
     aliases: []
-    verified: false
+    verified: true
   JAVA:
-    full_name: TODO
+    full_name: Java Programming
     aliases: []
-    verified: false
+    verified: true
   MDC:
     # Also appears bare (no programme or semester) in some timetable lines.
-    full_name: TODO
+    full_name: Multidisciplinary Course
     aliases: []
-    verified: false
+    verified: true
   ML:
     full_name: Machine Learning
     aliases: []
-    verified: false
+    verified: true
   MOP:
-    full_name: TODO
+    full_name: MLOps
     aliases: []
-    verified: false
+    verified: true
   MOT:
-    full_name: TODO
+    full_name: Modern Optimization Techniques
     aliases: []
-    verified: false
+    verified: true
   NDM:
-    full_name: TODO
+    full_name: Network and Design Management
     aliases: []
-    verified: false
+    verified: true
   OS:
     full_name: Operating Systems
     aliases: []
-    verified: false
+    verified: true
   PP:
-    full_name: TODO
+    full_name: Python Programming
     aliases: []
-    verified: false
+    verified: true
   PRJ:
-    full_name: TODO
+    full_name: Project
     aliases: []
-    verified: false
+    verified: true
   PYTHON:
-    full_name: TODO
+    full_name: Python Programming
     aliases: []
-    verified: false
+    verified: true
   RM:
     # Collides with Dr Ramamurthy B's short name "RM"; context decides which is meant.
     full_name: Research Methodology
     aliases: []
-    verified: false
+    verified: true
   RPA:
-    full_name: TODO
+    full_name: Robotic Process Automation
     aliases: []
-    verified: false
+    verified: true
   SE:
     full_name: Software Engineering
     aliases: []
-    verified: false
+    verified: true
   SP:
     # SP, SPR and SPD are separate codes in the sheet; do not merge them.
-    full_name: TODO
+    full_name: Speech Processing
     aliases: []
-    verified: false
+    verified: true
   SPD:
-    full_name: TODO
+    full_name: Specialization Project
     aliases: []
-    verified: false
+    verified: true
   SPR:
-    full_name: TODO
+    full_name: Speech Processing and Recognition
     aliases: []
-    verified: false
+    verified: true
   TML:
-    full_name: TODO
+    full_name: TinyML
     aliases: []
-    verified: false
+    verified: true
   UI/UX:
-    full_name: TODO
+    full_name: User Interface and User Experience Design
     aliases: []
-    verified: false
+    verified: true
   WSD:
-    full_name: TODO
+    full_name: Web Site Development
     aliases: []
-    verified: false
+    verified: true

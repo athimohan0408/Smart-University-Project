@@ -4,7 +4,7 @@
 # Override which file is loaded with the RAG_SETTINGS_PATH env var (e.g. for eval variants).
 
 paths:
-  raw_faculty_xlsx: data/raw/8th_floor_faculty_final_data.xlsx
+  raw_faculty_xlsx: data/raw/8th_floor_faculty_with_subjects.xlsx  # sheets: 8th Floor Faculty, Rooms, Subject Codes, Teacher Subjects
   glossary: data/kb/glossary.yaml           # hand-maintained + versioned; ingest never writes it
   entity_lexicon: data/kb/entity_lexicon.yaml  # facility/event words, honorifics (hand-maintained)
   # Verified classrooms, labs, facilities and events (kb/campus.py). Optional: missing or empty => those

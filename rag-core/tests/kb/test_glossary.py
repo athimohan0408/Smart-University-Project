@@ -2,6 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from rag_core.config import DEFAULT_SETTINGS_PATH, load_settings
+from rag_core.kb.subject_codes import read_subject_codes, sync_glossary_text
 from rag_core.kb.glossary import Glossary, GlossaryEntry, confidence_weight, load_glossary
 from rag_core.kb.ingest_faculty import ingest
 
@@ -27,14 +28,22 @@ def glossary(settings):
     return load_glossary(settings.paths.glossary)
 
 
-def test_nothing_is_verified_yet(glossary):
-    entries = [*glossary.programmes.values(), *glossary.subjects.values()]
-    assert entries and not any(e.verified for e in entries)
+def test_every_subject_has_the_full_form_from_the_dataset(glossary, settings):
+    """The department's "Subject Codes" sheet is the source; programmes are not in it and stay unverified."""
+    codes = read_subject_codes(settings.paths.raw_faculty_xlsx)
+    assert len(codes) == len(glossary.subjects) == 38
+    for code, full in codes.items():
+        entry = glossary.subject(code)
+        assert entry is not None and entry.full_name == full and entry.verified, code
+    assert glossary.subject("TML").full_name == "TinyML"
+    assert not any(e.verified for e in glossary.programmes.values())
 
 
-def test_only_standard_subject_expansions_are_prefilled(glossary):
-    expanded = {code: e.full_name for code, e in glossary.subjects.items() if e.is_expanded}
-    assert expanded == STANDARD_SUBJECTS
+def test_glossary_is_in_sync_with_the_dataset(settings):
+    """`just sync-glossary` was run after the last sheet change."""
+    codes = read_subject_codes(settings.paths.raw_faculty_xlsx)
+    _, changed, missing = sync_glossary_text(settings.paths.glossary.read_text(encoding="utf-8"), codes)
+    assert (changed, missing) == ([], [])
 
 
 def test_programme_expansions(glossary):

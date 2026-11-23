@@ -41,3 +41,40 @@ def test_clarification_buttons_come_from_the_names_in_the_answer(settings):
 def test_missing_faculty_file_is_harmless(tmp_path):
     d = FacultyDirectory.load(tmp_path / "nope.json")
     assert d.rooms == {} and d.clarification_options({"outcome": "clarification", "answer": "x"}) == []
+
+
+def test_place_answers_route_to_the_room_they_name_not_the_class_teachers_office(tmp_path):
+    d = FacultyDirectory.load(tmp_path / "missing.json")
+    turn = {"outcome": "answered", "escalate": False,
+            "answer": "MCA classroom, semester 5, section A is in room 808, Central Block, Eighth Floor, here on this "
+                      "floor. Class teacher: Dr Shivangi Singh (office room 871, Eighth Floor).",
+            "entities": [{"type": "facility", "text": "classroom", "canonical_id": "facility:classroom"}]}
+    assert d.rooms_in_answer(turn) == ["room:808"]
+    assert d.rooms_in_answer({**turn, "entities": []}) == []  # not a place question
+    assert d.rooms_in_answer({**turn, "outcome": "escalated", "escalate": True}) == []
+
+
+def test_a_programme_classroom_question_routes_by_intent(tmp_path):
+    d = FacultyDirectory.load(tmp_path / "missing.json")
+    turn = {"outcome": "answered", "escalate": False, "intent": "find_room",
+            "answer": "MCA classroom, semester 5, section A is in room 808, Central Block, Eighth Floor, here on this "
+                      "floor. Class teacher: Dr Shivangi Singh (office room 871, Eighth Floor).",
+            "entities": [{"type": "programme", "text": "MCA", "canonical_id": "programme:mca"}]}
+    assert d.rooms_in_answer(turn) == ["room:808"]
+    assert d.rooms_in_answer({**turn, "intent": "programme_info"}) == []
+
+
+def test_what_the_timetable_says_now(settings):
+    from datetime import datetime
+
+    d = FacultyDirectory.load(settings.kb.faculty_json)
+    nisha = "faculty:nisha-varghese"
+    assert d.people_in("874") == [nisha]
+    monday = datetime(2026, 11, 16, 10, 0)  # a Monday
+    assert d.status(nisha, monday) == "Teaching now (ML) until 11:45, so may not be in the cabin"
+    assert d.status(nisha, monday.replace(hour=14)) == "Consultation hours now, until 14:45"
+    assert d.status(nisha, monday.replace(hour=12)) is None  # nothing on the timetable
+    assert d.next_consultation(nisha, monday) == "today 13:45-14:45"
+    assert d.next_consultation(nisha, monday.replace(hour=15)) == "Wednesday 11:45-12:45"
+    assert d.next_consultation(nisha, datetime(2026, 11, 17, 9, 0)) == "tomorrow 11:45-12:45"  # Tuesday
+    assert d.next_consultation("faculty:jossy-p-george", monday) is None

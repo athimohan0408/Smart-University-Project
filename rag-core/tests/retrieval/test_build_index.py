@@ -86,7 +86,7 @@ def test_facts_jsonl_and_chroma_metadata(tmp_path, facts, settings):
     _build(tmp_path, facts, settings)
     lines = [json.loads(line) for line in (tmp_path / "facts.jsonl").read_text(encoding="utf-8").splitlines()]
     assert [line["fact_id"] for line in lines] == [f.fact_id for f in facts]
-    assert sum(line["category"] == FactCategory.FACULTY_LOCATION for line in lines) == 36
+    assert sum(line["category"] == FactCategory.FACULTY_LOCATION for line in lines) == 37
 
     stored = _collection(tmp_path).get(ids=["faculty:nisha-varghese:location"], include=["metadatas", "documents"])
     meta = stored["metadatas"][0]

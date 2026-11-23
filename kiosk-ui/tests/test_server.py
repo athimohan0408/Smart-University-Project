@@ -159,7 +159,7 @@ def test_speak_endpoint(client):
 
 def test_route_carries_the_walkthrough(client):
     r = client.get("/api/route/room:874").json()
-    assert r["step_kinds"] == ["enter", "left", "arrive-right"]
+    assert r["step_kinds"] == ["start", "left", "left", "arrive-right"]
     assert r["step_spans"][0][0] == 0 and r["step_spans"][-1][1] == len(r["points"]) - 1
 
 
@@ -167,3 +167,56 @@ def test_kiosk_page_has_the_walkthrough(client):
     html = client.get("/").text
     for needed in ('id="nav"', 'id="nav-start"', 'id="nav-play"', 'id="nav-map"', 'id="nav-photo"'):
         assert needed in html
+
+
+def test_routes_from_a_lift_and_the_nearest_washroom(client):
+    r = client.get("/api/route/room:874", params={"from": "lift-north"}).json()
+    assert r["steps"][0].startswith("With the north lift behind you") and r["start_id"] == "lift-north"
+    assert client.get("/api/route/room:874", params={"from": "rooftop"}).status_code == 404
+    near = client.get("/api/nearest/gents", params={"from": "lift-west"}).json()
+    assert near["place_id"] == "facility:gents-south"
+    assert client.get("/api/nearest/helipad").status_code == 404
+    m = client.get("/api/map", params={"from": "lift-west"}).json()
+    assert m["start_name"] == "the west lift" and m["start_point"] == [155.0, 355.0]
+    assert [s["id"] for s in m["starts"]][:2] == ["kiosk", "lift-north"]
+
+
+def test_place_cards(client):
+    places = client.get("/api/places").json()
+    assert any(p["id"] == "room:874" and p["people"] == ["Dr Nisha Varghese"] for p in places)
+    card = client.get("/api/place/room:874").json()
+    assert card["staff"][0]["name"] == "Dr Nisha Varghese" and card["where"].startswith("inside")
+    assert client.get("/api/place/room:808").json()["class_teacher"] == "Dr Shivangi Singh"
+    assert client.get("/api/place/room:999").status_code == 404
+
+
+def test_feedback_is_logged_without_personal_data(client, settings):
+    assert client.post("/api/feedback", json={"session_id": "s1", "turn_id": "t1", "helpful": False}).json() == {"status": "thanks"}
+    [event] = read_jsonl(settings.logs.ui_events)
+    assert event["event"] == "feedback" and event["helpful"] is False and event["turn_id"] == "t1"
+    assert client.post("/api/feedback", json={"session_id": "s1"}).status_code == 422
+
+
+def test_phone_page_qr_stickers_and_3d_files_are_served(client):
+    go = client.get("/go")
+    assert go.status_code == 200 and "Find your way" in go.text and re.search(r"/static/go\.js\?v=\w+", go.text)
+    assert "QR stickers" in client.get("/qr").text
+    for name in ("go.js", "go.css", "qr.js", "explore.js", "view3d.js", "floor3d.js"):
+        assert client.get(f"/static/{name}").status_code == 200, name
+    kiosk = client.get("/").text
+    for needed in ('id="explore-overlay"', 'id="place-overlay"', 'id="view3d"', 'id="map3d"', 'id="a11y"', "importmap",
+                   'id="phone-qr"', 'id="codes-overlay"'):
+        assert needed in kiosk, needed
+    assert client.get("/api/config").json()["public_url"] is None
+
+
+def test_qr_codes_use_the_wifi_address_when_the_server_is_on_the_network(settings, voice_memory, monkeypatch):
+    import kiosk_ui.server as server
+
+    monkeypatch.setattr(server, "lan_address", lambda: "192.168.1.20")
+    on_network = settings.model_copy(update={"api": settings.api.model_copy(update={"host": "0.0.0.0"})})
+    with TestClient(create_app(on_network, transport=voice_memory)) as c:
+        assert c.get("/api/config").json()["public_url"] == f"http://192.168.1.20:{settings.api.port}"
+    fixed = on_network.model_copy(update={"kiosk": settings.kiosk.model_copy(update={"public_url": "http://kiosk.local:8002/"})})
+    with TestClient(create_app(fixed, transport=voice_memory)) as c:
+        assert c.get("/api/config").json()["public_url"] == "http://kiosk.local:8002"

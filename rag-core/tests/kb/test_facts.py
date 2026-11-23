@@ -86,15 +86,34 @@ def test_schedule_fact(by_id):
     )
 
 
-def test_unverified_subject_names_are_marked(by_id):
+def _unverified(settings, *codes: str, todo: tuple[str, ...] = ()) -> Glossary:
+    """The real glossary with some subjects marked unverified (or TODO): the trust rules on a known entry."""
+    raw = yaml.safe_load(settings.paths.glossary.read_text(encoding="utf-8"))
+    for code in codes:
+        raw["subjects"][code]["verified"] = False
+    for code in todo:
+        raw["subjects"][code] = {"full_name": "TODO", "aliases": [], "verified": False}
+    return Glossary.model_validate(raw)
+
+
+def test_subject_names_from_the_dataset_are_said_plainly(by_id):
     ml = by_id["faculty:nisha-varghese:teaching:ml"]
+    assert ml.text.startswith("Dr Nisha Varghese teaches Machine Learning (ML): ")
+    assert not ml.verified  # it also names programme MSAIM, whose name the dataset doesn't confirm
+    assert by_id["faculty:nisha-varghese:teaching:tml"].text.startswith("Dr Nisha Varghese teaches TinyML (TML): ")
+
+
+def test_unverified_subject_names_are_marked(kb, settings):
+    facts = {f.fact_id: f for f in build_facts(kb, _ctx(settings, _unverified(settings, "ML", todo=("TML",))))}
+    ml = facts["faculty:nisha-varghese:teaching:ml"]
     assert 'subject code ML ("Machine Learning", full name not verified)' in ml.text
     assert not ml.verified
-    assert "subject code TML (full name not verified)" in by_id["faculty:nisha-varghese:teaching:tml"].text
+    assert "subject code TML (full name not verified)" in facts["faculty:nisha-varghese:teaching:tml"].text
 
 
 def test_unverified_expansions_can_be_switched_off(kb, settings):
-    facts = {f.fact_id: f for f in build_facts(kb, _ctx(settings, expansions=False))}
+    glossary = _unverified(settings, "ML")
+    facts = {f.fact_id: f for f in build_facts(kb, _ctx(settings, glossary, expansions=False))}
     assert "Machine Learning" not in facts["faculty:nisha-varghese:teaching:ml"].text
     assert "subject code ML (full name not verified)" in facts["faculty:nisha-varghese:teaching:ml"].text
 

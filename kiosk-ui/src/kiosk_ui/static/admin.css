@@ -1,0 +1,67 @@
+/* The admin dashboard: the analytics dashboard's look, plus forms. */
+.admin-links { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.admin-links a { color: var(--navy); font-weight: 600; }
+.who { color: var(--ink-2); font-size: .9rem; }
+
+.gate { display: grid; place-items: center; padding: 48px 16px; }
+.gate-card { width: min(420px, 100%); display: grid; gap: 14px; }
+.gate-card h2 { color: var(--navy); }
+.error { color: var(--bad); font-weight: 600; min-height: 1.2em; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 2px solid var(--navy); margin-bottom: 18px; }
+.tabs button { border-radius: var(--radius) var(--radius) 0 0; border: 1px solid var(--rule); border-bottom: 0; background: var(--surface);
+  color: var(--ink-2); font-weight: 600; }
+.tabs button[aria-selected="true"] { background: var(--navy); color: #fff; border-color: var(--navy); }
+.flash { padding: 10px 14px; border-radius: var(--radius); background: #e3efe7; color: var(--ok); font-weight: 600; margin: 0 0 14px; }
+.flash.bad { background: #f7e1df; color: var(--bad); }
+
+.admin label { display: grid; gap: 4px; font-size: .9rem; color: var(--ink-2); font-weight: 600; }
+.admin input:not([type="file"]), .admin select, .admin textarea, .gate input { font: inherit; font-weight: 400; color: var(--ink);
+  padding: .55em .7em; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: #fff; width: 100%; }
+.gate label { display: grid; gap: 4px; font-weight: 600; color: var(--ink-2); }
+.admin textarea { resize: vertical; }
+.stack { display: grid; gap: 12px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .two { grid-template-columns: 1fr; } }
+.row-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row-form input[name="note"] { flex: 1 1 260px; width: auto; }
+.status-form select, .status-form input { width: auto; }
+.status-form label { display: inline-flex; align-items: center; gap: 6px; }
+.search { margin-bottom: 10px; }
+.small { padding: .3em .7em; font-size: .85rem; }
+.actions { white-space: nowrap; text-align: right; }
+.actions > * + * { margin-left: 6px; }
+.admin h3 { font: 700 .75rem var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-deep); margin: 20px 0 8px; }
+
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0 0 14px; }
+.kv dt { color: var(--ink-2); }
+.kv dd { margin: 0; font-weight: 600; }
+.howto { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--ink-2); font-size: .92rem; }
+
+.summary { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 6px 0 12px; }
+.summary strong { color: var(--navy); font: 600 1.4rem var(--serif); margin-right: 2px; }
+.problem { color: var(--bad); font-weight: 600; margin: 4px 0; }
+.warnings { margin: 8px 0; color: var(--warn); }
+.warnings summary { cursor: pointer; font-weight: 600; }
+.changes { margin: 10px 0 14px; }
+.changes .before { color: var(--ink-2); text-decoration: line-through; text-decoration-color: rgba(163, 35, 26, .4); }
+.changes .after { color: var(--ok); font-weight: 600; }
+#tt-preview { border-top: 3px solid var(--gold); }
+
+.badge { display: inline-block; margin-left: 6px; background: var(--paper-2); color: var(--ink-2); }
+.badge.ok { background: #e3efe7; color: var(--ok); }
+.badge.bad { background: #f7e1df; color: var(--bad); }
+.office { color: var(--warn); font-weight: 600; }
+.quiet { color: var(--ink-2); }
+
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.list li { border: 1px solid var(--rule); border-radius: var(--radius); padding: 10px 12px; display: grid; gap: 4px; background: #fff; }
+.list li button { justify-self: start; }
+.list small { color: var(--ink-2); }
+.pick-list { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow-y: auto; display: grid; gap: 4px; }
+.pick-list button { width: 100%; text-align: left; border: 1px solid var(--rule); background: #fff; display: flex; align-items: center; gap: 4px; }
+.pick-list button.on { border-color: var(--navy); background: var(--gold-pale); }
+.pick-list strong { flex: 1; color: var(--navy); font-weight: 600; }
+.photo-row { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+#pl-photo { width: 140px; max-height: 190px; object-fit: cover; border: 2px solid var(--gold); border-radius: var(--radius); }
+.stack > .btn, .gate-card > .btn { justify-self: start; }

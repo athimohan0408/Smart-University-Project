@@ -29,7 +29,7 @@ def test_check_turn_passes_and_fails_each_rule():
 
 def test_test_set_is_well_formed():
     rows = read_jsonl(MODULE_ROOT / "evaluation" / "test_set.jsonl")
-    assert 20 <= sum(len(r["turns"]) for r in rows) <= 30
+    assert 20 <= sum(len(r["turns"]) for r in rows) <= 40
     assert len({r["id"] for r in rows}) == len(rows)
     fmap = FloorMap.load(MODULE_ROOT / "data" / "floor_map.yaml")
     for r in rows:

@@ -12,7 +12,8 @@ const FloorMapView = (() => {
   }
 
   // Draw the map into `container`; returns {showRoute(route), clear()}.
-  function render(container, map, { onPlace } = {}) {
+  // onPlace(place): tapping a place on the map; allPlaces: every place is tappable, not only those with a photo.
+  function render(container, map, { onPlace, allPlaces = false } = {}) {
     const [vx, vy, vw, vh] = map.viewbox;
     const svg = el("svg", { viewBox: `${vx} ${vy} ${vw} ${vh}`, "aria-hidden": "true" });
     for (const [x, y, w, h] of map.corridor) svg.append(el("rect", { x, y, width: w, height: h, rx: 6, class: "corridor" }));
@@ -25,8 +26,8 @@ const FloorMapView = (() => {
       const r = el("rect", { x, y, width: w, height: h, rx: p.kind === "room" ? 3 : 2, class: cls });
       r.append(el("title", {}, p.kind === "room" ? `Room ${p.label}` : p.label));
       svg.append(r);
-      if (onPlace && p.photo) {
-        r.classList.add("has-photo");
+      if (onPlace && (p.photo || allPlaces) && p.kind !== "hall") {
+        r.classList.add("has-photo");  // tappable: its photo, or its place card ("Explore the floor")
         r.addEventListener("click", () => onPlace(p));
       }
       const [lx, ly] = p.label_at || [x + w / 2, y + h / 2];
@@ -38,18 +39,34 @@ const FloorMapView = (() => {
     const routeLayer = el("g");
     svg.append(routeLayer);
     const [sx, sy] = map.start_point;
-    svg.append(el("circle", { cx: sx, cy: sy, r: 14, class: "you" }));
-    svg.append(el("text", { x: sx + 22, y: sy + 1, class: "label small here-label" }, "You are here"));
+    const youDot = el("circle", { cx: sx, cy: sy, r: 14, class: "you" });
+    const youLabel = el("text", { x: sx + 22, y: sy + 1, class: "label small here-label" }, "You are here");
+    svg.append(youDot, youLabel);
     container.replaceChildren(svg);
+
+    // "You are here" is the kiosk, unless the visitor said they are somewhere else (from the lift, at the stairs ...)
+    function setYou([x, y], text) {
+      youDot.setAttribute("cx", x); youDot.setAttribute("cy", y);
+      youLabel.setAttribute("x", x + 22); youLabel.setAttribute("y", y + 1);
+      youLabel.textContent = text;
+    }
 
     function clear() {
       routeLayer.replaceChildren();
       for (const r of rects.values()) r.classList.remove("hi");
+      setYou([sx, sy], "You are here");
+    }
+
+    // Where the visitor is (answer to "Where am I?"): the marker moves to the kiosk or to the place they named.
+    function showPosition(point, name, isKiosk) {
+      clear();
+      setYou(point, isKiosk ? "You are here" : `You are at ${name}`);
     }
 
     function showRoute(route) {
       clear();
       if (!route) return;
+      if (route.origin_name) setYou(route.points[0], `You are at ${route.origin_name}`);
       const pts = route.points.map(([x, y]) => `${x},${y}`).join(" ");
       routeLayer.append(el("polyline", { points: pts, class: "route" }));
       const [dx, dy] = route.points[route.points.length - 1];
@@ -137,7 +154,7 @@ const FloorMapView = (() => {
       clear();
     }
 
-    return { showRoute, clear, highlight, navStep, walk, focus, navReset };
+    return { showRoute, showPosition, clear, highlight, navStep, walk, focus, navReset };
   }
 
   return { render };

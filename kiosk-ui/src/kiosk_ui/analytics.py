@@ -57,6 +57,8 @@ class Totals(BaseModel):
     completion_rate: float | None
     routes_shown: int
     receptionist_button: int
+    helpful_yes: int = 0  # thumbs up / down under an answer on the kiosk
+    helpful_no: int = 0
 
 
 class Dashboard(BaseModel):
@@ -160,8 +162,9 @@ def compute(rag: list[dict], turns: list[dict], ui: list[dict], *, days: float |
         answered_of = lambda r: not r.get("escalate") and not r.get("clarification")  # noqa: E731
         clarified = sum(1 for r in questions if r.get("clarification"))
     else:
-        questions = [e for e in ui_turns if e.get("outcome") not in ("social", "no_speech", None)]
-        answered_of = lambda r: r.get("outcome") == "answered"  # noqa: E731
+        # a message or meeting request in progress (or called off) is not a question; a sent one is a completed request
+        questions = [e for e in ui_turns if e.get("outcome") not in ("social", "no_speech", "task", "task_cancelled", None)]
+        answered_of = lambda r: r.get("outcome") in ("answered", "task_done")  # noqa: E731
         clarified = sum(1 for r in questions if r.get("outcome") == "clarification")
 
     escalated = [r for r in questions if r.get("escalate")]
@@ -208,6 +211,8 @@ def compute(rag: list[dict], turns: list[dict], ui: list[dict], *, days: float |
             completion_rate=_completion_rate(turns),
             routes_shown=sum(1 for e in ui_turns if e.get("route_shown")),
             receptionist_button=sum(1 for e in ui if e.get("event") == "receptionist_button"),
+            helpful_yes=sum(1 for e in ui if e.get("event") == "feedback" and e.get("helpful") is True),
+            helpful_no=sum(1 for e in ui if e.get("event") == "feedback" and e.get("helpful") is False),
         ),
         most_asked=_grouped(questions, top, answered_of),
         unanswered=_grouped(unanswered, top),

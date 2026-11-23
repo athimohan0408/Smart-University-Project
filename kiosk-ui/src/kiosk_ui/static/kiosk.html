@@ -10,6 +10,11 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
   <link rel="stylesheet" href="/static/common.css">
   <link rel="stylesheet" href="/static/kiosk.css">
+  <!-- the 3D floor view (floor3d.js) imports Three.js by these names, loaded only when 3D is switched on -->
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+  </script>
 </head>
 <body class="kiosk">
   <header class="masthead">
@@ -19,10 +24,19 @@
       <div class="where">Smart University · Central Block, 8th Floor</div>
     </div>
     <div class="masthead-right">
+      <span id="wake" class="wake-badge" hidden>Watching for visitors</span>
+      <button id="a11y" class="a11y-toggle" type="button" aria-pressed="false"
+              title="Larger text, stronger colours, slower speech and step-free routes">Aa Easy view</button>
       <span id="status" class="status" title="Connection to the receptionist service"><i></i><span class="status-text">Connecting…</span></span>
       <time id="clock" class="clock"></time>
     </div>
   </header>
+
+  <!-- what the department office announces (admin dashboard), on every screen -->
+  <div id="notice-bar" class="notice-bar" role="status" hidden>
+    <strong>Notice</strong>
+    <span id="notice-text"></span>
+  </div>
 
   <!-- 1. Welcome: the robot greets the visitor -->
   <section id="intro" class="intro" aria-label="Welcome">
@@ -99,6 +113,7 @@
           <li><button class="chip" type="button">Where is room 877?</button></li>
           <li><button class="chip" type="button">Who teaches DSA?</button></li>
         </ol>
+        <button id="explore-open" class="btn btn-line explore-open" type="button">Explore the floor: every room, lift and washroom</button>
       </div>
 
       <div id="thread" class="thread" aria-live="polite"></div>
@@ -125,9 +140,14 @@
             <p class="kicker">Find your way</p>
             <h2 id="details-title">Floor map</h2>
           </div>
-          <span id="map-warning" class="badge warn" hidden>Not to scale</span>
+          <div class="board-tools">
+            <span id="map-warning" class="badge warn" hidden>Not to scale</span>
+            <button id="view3d" class="btn btn-line-light small-btn" type="button" aria-pressed="false">3D view</button>
+            <button id="explore-btn" class="btn btn-line-light small-btn" type="button">Explore</button>
+          </div>
         </div>
         <div id="map" class="map" role="img" aria-label="Map of the 8th floor"></div>
+        <div id="map3d" class="map3d" hidden aria-label="3D view of the 8th floor: drag to turn it, pinch to zoom, tap a room"></div>
         <div class="legend" aria-hidden="true">
           <span><i class="dot you"></i>You are here</span>
           <span><i class="dot dest"></i>Destination</span>
@@ -137,6 +157,15 @@
         <div class="panel-actions">
           <button id="nav-start" class="btn btn-gold" type="button" hidden>&#9654; Show me the way</button>
           <button id="pano-btn" class="btn btn-line-light" type="button" hidden>360° view</button>
+        </div>
+        <!-- QR: these directions (or, with no route, the floor's directions) on the visitor's phone -->
+        <div id="phone-qr" class="phone-qr" hidden>
+          <div id="phone-qr-code" class="qr-code"></div>
+          <div>
+            <strong id="phone-qr-title">Directions on your phone</strong>
+            <span id="phone-qr-text">Scan to find any room on this floor from your phone.</span>
+            <button id="codes-open" class="link-btn" type="button">QR codes for the lifts and stairs</button>
+          </div>
         </div>
       </section>
       <section class="pane" id="facts-panel" hidden>
@@ -201,7 +230,79 @@
     </div>
   </div>
 
+  <!-- A place: what it is, who sits there, the way there, and a QR code to take the way on a phone -->
+  <div id="place-overlay" class="overlay" hidden>
+    <article class="place-card" aria-labelledby="place-name">
+      <header class="place-head">
+        <div>
+          <p class="kicker" id="place-kicker"></p>
+          <h2 id="place-name"></h2>
+          <p id="place-where" class="place-where"></p>
+          <p id="place-closed" class="place-closed" hidden></p>
+        </div>
+        <button id="place-close" class="btn btn-navy" type="button">Close</button>
+      </header>
+      <div class="place-body">
+        <div class="place-text">
+          <p id="place-about" class="place-about"></p>
+          <dl id="place-facts" class="facts"></dl>
+          <ul id="place-staff" class="place-staff"></ul>
+          <p id="place-source" class="place-source"></p>
+        </div>
+        <img id="place-photo" class="place-photo" alt="">
+      </div>
+      <footer class="place-actions">
+        <button id="place-go" class="btn btn-gold" type="button">&#9654; Show me the way</button>
+        <div id="place-qr" class="place-qr" hidden>
+          <div id="place-qr-code" class="qr-code"></div>
+          <span>Scan to take the directions on your phone</span>
+        </div>
+      </footer>
+    </article>
+  </div>
+
+  <!-- The QR codes for every lift and staircase (the same as the printed stickers at /qr) -->
+  <div id="codes-overlay" class="overlay" hidden>
+    <section class="explore" aria-labelledby="codes-title">
+      <header class="place-head">
+        <div>
+          <p class="kicker">Scan with your phone</p>
+          <h2 id="codes-title">Directions from where you are</h2>
+        </div>
+        <button id="codes-close" class="btn btn-navy" type="button">Close</button>
+      </header>
+      <p class="quiet codes-lede">Each code opens step-by-step 3D directions on your phone, starting from that spot.</p>
+      <div id="codes-grid" class="codes-grid"></div>
+    </section>
+  </div>
+
+  <!-- Explore the floor: every place, searchable -->
+  <div id="explore-overlay" class="overlay" hidden>
+    <section class="explore" aria-labelledby="explore-title">
+      <header class="place-head">
+        <div>
+          <p class="kicker">Central Block, 8th floor</p>
+          <h2 id="explore-title">Explore the floor</h2>
+        </div>
+        <button id="explore-close" class="btn btn-navy" type="button">Close</button>
+      </header>
+      <div class="explore-quick" id="explore-quick">
+        <button class="btn btn-line" type="button" data-nearest="ladies">Nearest ladies washroom</button>
+        <button class="btn btn-line" type="button" data-nearest="gents">Nearest gents washroom</button>
+        <button class="btn btn-line" type="button" data-nearest="lift">Nearest lift</button>
+        <button class="btn btn-line" type="button" data-nearest="water">Drinking water</button>
+      </div>
+      <input id="explore-search" class="explore-search" type="search" placeholder="Search a room, a person or a place"
+             aria-label="Search a room, a person or a place" autocomplete="off">
+      <div id="explore-list" class="explore-list"></div>
+    </section>
+  </div>
+
   <script src="/static/map.js"></script>
+  <script src="/static/wake.js"></script>
   <script src="/static/kiosk.js"></script>
+  <script src="/static/qr.js"></script>
+  <script src="/static/explore.js"></script>
+  <script src="/static/view3d.js"></script>
 </body>
 </html>

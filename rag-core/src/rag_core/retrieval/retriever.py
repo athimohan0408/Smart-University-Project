@@ -120,7 +120,7 @@ ROUTES: dict[Intent, tuple[Route, ...]] = {
         _route(_C.ROOM, _ROOM),
         _route(_C.FACULTY_LOCATION, _FAC),
         _route(_C.FACILITY, _ROOM, unless=[_FAC]),  # "where is room 806" when 806 is a lab, not an office
-        _route(_C.FACILITY, _PLACE, unless=[_ROOM, _FAC]),  # "where is the washroom / the AI lab"
+        _route(_C.FACILITY, _PLACE, unless=[_ROOM, _FAC, _PROG]),  # "where is the washroom / the AI lab"
         _route(_C.FACILITY, _PLACE, _PROG, unless=[_ROOM, _FAC]),  # "where is the MSc AIML classroom"
         _route(_C.FACILITY, _PROG, unless=[_ROOM, _FAC, _PLACE], tier=1),  # "where do MSAIM classes happen"
         # "where is the MSc AIML classroom / the ML class": these facts say the location isn't listed

@@ -28,6 +28,7 @@ facilities:
   seminar_hall: [seminar hall, seminar room, auditorium, conference room, conference hall, board room]
   department_office: [department office, hod office, hod cabin, hods office, hods cabin]
   reception: [reception, front desk, help desk]
+  placement_office: [placement office, placement cell, placements office]
 
 events:
   event: [event, events]

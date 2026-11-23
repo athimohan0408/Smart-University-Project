@@ -167,5 +167,11 @@ def test_real_kb_genders_load(settings):
     if not settings.kb.faculty_json.exists():
         pytest.skip("run `just ingest` in rag-core first")
     kb = KBView.load(settings.kb.faculty_json)
-    assert len(kb.people) == 36
+    assert len(kb.people) == 37  # 36 faculty + the receptionist (dataset of 2026-11)
     assert kb.gender_of("faculty:deepa-v-jose") == "female" and kb.gender_of("faculty:binayak-dutta") == "male"
+
+
+def test_ellipsis_with_a_possessive_replaces_the_name_not_the_noun(memory):
+    turn(memory, "where is Dr Nisha Varghese's office?", result("Dr Nisha Varghese's office is room 874.", entities=[NISHA]))
+    rw = memory.rewrite("s1", "and Dr Binayak Dutta's office?")
+    assert rw.question == "where is Dr Binayak Dutta's office?" and rw.rules == ["ellipsis:person"]

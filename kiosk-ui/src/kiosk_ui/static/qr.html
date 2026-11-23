@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lift QR Stickers</title>
+  <link rel="icon" href="/static/christ-logo.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+  <link rel="stylesheet" href="/static/common.css">
+  <style>
+    body { padding: 24px; }
+    .intro { max-width: 70ch; display: grid; gap: 10px; margin-bottom: 20px; }
+    .intro h1 { color: var(--navy); font-size: 1.8rem; }
+    .intro .btn { justify-self: start; }
+    .warn { background: var(--warn-pale); color: var(--warn); padding: 10px 14px; border-radius: var(--radius); font-weight: 600; }
+    .sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+    .sticker { border: 3px solid var(--navy); border-radius: 8px; padding: 18px; display: grid; gap: 10px; justify-items: center;
+      text-align: center; background: #fff; break-inside: avoid; }
+    .sticker .kicker { color: var(--gold-deep); }
+    .sticker h2 { color: var(--navy); font-size: 1.5rem; }
+    .sticker img { width: 200px; height: 200px; image-rendering: pixelated; }
+    .sticker p { font-size: .95rem; }
+    .sticker small { color: var(--ink-2); word-break: break-all; }
+    @media print { body { padding: 0; } .intro { display: none; } .sheet { gap: 10mm; } }
+  </style>
+</head>
+<body>
+  <section class="intro">
+    <p class="kicker">kiosk-ui · print and stick</p>
+    <h1>QR stickers for the lifts and staircases</h1>
+    <p>Print this page and stick each one next to its lift or staircase on the 8th floor. Scanning it opens
+      walking directions on the visitor's phone, starting from that spot.</p>
+    <p id="base-warn" class="warn" hidden></p>
+    <button class="btn btn-navy" type="button" onclick="print()">Print</button>
+  </section>
+  <div id="sheet" class="sheet"></div>
+  <script src="/static/qr.js"></script>
+  <script>
+    "use strict";
+    (async () => {
+      const [config, map] = await Promise.all([fetch("/api/config").then((r) => r.json()), fetch("/api/map").then((r) => r.json())]);
+      const base = config.public_url || location.origin;
+      if (/\/\/(127\.0\.0\.1|localhost|\[::1\])/.test(base)) {
+        const w = document.getElementById("base-warn");
+        w.hidden = false;
+        w.textContent = `These codes point at ${base}, which only works on the kiosk itself. Set kiosk.public_url in `
+          + "config/settings.yaml to the kiosk's address on the campus Wi-Fi (and api.host to 0.0.0.0), then reload.";
+      }
+      for (const s of map.starts.filter((s) => s.id !== "kiosk")) {
+        const url = `${base}/go?from=${encodeURIComponent(s.id)}`;
+        const card = document.createElement("article");
+        card.className = "sticker";
+        card.innerHTML = `<p class="kicker">Central Block · 8th floor</p><h2></h2><img alt="">`
+          + `<p>Lost? Scan for walking directions to any room, cabin or washroom on this floor.</p><small></small>`;
+        card.querySelector("h2").textContent = `You are at ${s.name}`;
+        card.querySelector("small").textContent = url;
+        document.getElementById("sheet").append(card);
+        QR.render(card.querySelector("img"), url, { cell: 8 });
+      }
+    })();
+  </script>
+</body>
+</html>

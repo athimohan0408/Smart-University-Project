@@ -1,7 +1,7 @@
 # kiosk-ui settings. Paths are relative to this module's folder (kiosk-ui/).
 
 api:
-  host: 127.0.0.1
+  host: 0.0.0.0               # on the network, so phones can open the QR walkthrough (/go); 127.0.0.1 = this computer only
   port: 8002                  # the kiosk screen: http://127.0.0.1:8002/  dashboard: /dashboard
 
 upstream:
@@ -12,13 +12,31 @@ kiosk:
   id: kiosk-01                # prefix for session ids; one session per visitor
   idle_reset_s: 90            # no touch/voice for this long -> new visitor (screen and memory reset)
   speak: true                 # ask voice-memory for the answer audio and play it
+  # Wake on approach: the welcome screen dims while nobody is there and wakes (greets, waves) when someone walks up.
+  # With camera: true the browser asks for the webcam once; frames are compared in the browser to see movement or a
+  # face, and are never stored or sent anywhere. camera: false (or no webcam / permission refused) falls back to touch,
+  # mouse and keyboard only. Tune on the real kiosk: the numbers depend on the camera and where it points.
+  wake:
+    enabled: true
+    camera: true
+    sample_ms: 250
+    motion_threshold: 0.04      # share of the picture that changed between two samples (0-1)
+    min_face_ratio: 0.14        # face width / picture width, when the browser can detect faces: bigger = closer
+    hold_ms: 800                # must last this long to count as someone approaching
+    absent_s: 6                 # nobody for this long: the next movement is a new approach
+    sleep_after_s: 120          # dim the welcome screen after this long with nobody (0 = never dim)
   # What the robot says when the page opens and for each new visitor (spoken with voice-memory's voice).
   greeting: >-
     Hello, and welcome to the eighth floor of Central Block! I'm your AI receptionist. I can tell you where
     a faculty member sits, when you can meet them, or how to find a room. Just tap the microphone and ask me.
+  # How phones reach this server, for the QR codes (the lift stickers at /qr and the place cards). null = worked out
+  # by itself from this computer's Wi-Fi address while api.host is 0.0.0.0. Set it (e.g. http://192.168.1.20:8002)
+  # when the kiosk has a fixed address or a name, so printed stickers keep working if the Wi-Fi address changes.
+  public_url: null
 
 map:
   file: data/floor_map.yaml
+  places_info: data/places_info.yaml   # what each place is (place cards); who sits where comes from the faculty sheet
 
 kb:
   # Built by rag-core (`just index`). Read-only: faculty display names (clarification buttons) and their
@@ -31,6 +49,16 @@ logs:
   # Read-only inputs for the dashboard, written by the other two modules.
   rag_queries: ../rag-core/logs/queries.jsonl
   voice_turns: ../voice-memory/logs/turns.jsonl
+
+admin:
+  # The admin dashboard (/admin): the department office changes the timetable each semester, faculty status,
+  # announcements, closed rooms, place info and door photos. Accounts and changes are kept here, not in git.
+  data_dir: data/admin
+  # A published timetable replaces rag-core's faculty workbook, then rag-core rebuilds its answers
+  # (POST /reload-kb, rag-core's own update path; no restart). Every version is kept for rolling back.
+  rag_url: http://127.0.0.1:8000
+  timetable_file: ../rag-core/data/raw/8th_floor_faculty_with_subjects.xlsx
+  reload_timeout_s: 600
 
 evaluation:
   test_set: evaluation/test_set.jsonl

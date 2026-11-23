@@ -83,14 +83,16 @@ def test_a_decline_may_echo_the_visitors_words(checker, settings, gazetteer):
 
 
 def test_unverified_glossary_expansion_is_flagged(checker):
+    # Subject names are all verified now (dataset "Subject Codes"); programme names are not.
     course = RetrievedFact(
-        fact_id="course:ml",
-        text='Course: subject code ML ("Machine Learning", full name not verified). Taught by: Dr Nisha Varghese.',
-        metadata={"category": "course", "subject_code": "ML", "faculty_id": "nisha-varghese", "verified": False},
+        fact_id="programme:msaim",
+        text='Programme MSAIM ("MSc Artificial Intelligence and Machine Learning", programme name not verified). '
+             "Faculty with MSAIM classes in the timetable: Dr Nisha Varghese.",
+        metadata={"category": "programme", "programme": "MSAIM", "faculty_id": "nisha-varghese", "verified": False},
         score=1.0, rank=1, via="structured",
     )
-    by_code = checker.check(draft("ML is taught by Dr Nisha Varghese.", ["course:ml"]), [course])
-    by_name = checker.check(draft("Machine Learning is taught by Dr Nisha Varghese.", ["course:ml"]), [course])
+    by_code = checker.check(draft("Dr Nisha Varghese teaches in MSAIM.", ["programme:msaim"]), [course])
+    by_name = checker.check(draft("Dr Nisha Varghese teaches in the MSc in AI and ML.", ["programme:msaim"]), [course])
     assert by_code.passed and not by_code.uses_unverified_glossary
     assert by_name.passed and by_name.uses_unverified_glossary
 

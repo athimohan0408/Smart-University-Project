@@ -81,7 +81,7 @@ def compose(settings, gazetteer, make_retriever):
 @pytest.mark.parametrize("question,intent,expect,answerable", [
     ("where is Dr Nisha Varghese's cabin?", Intent.FIND_PERSON, ["874", "on this floor"], True),
     ("where is Dr Ashwini Patil", Intent.FIND_PERSON, ["not on this floor", "Block II", "607A"], True),
-    ("who teaches ML", Intent.FIND_BY_SUBJECT, ["ML is taught by", "Dr Nisha Varghese"], True),
+    ("who teaches ML", Intent.FIND_BY_SUBJECT, ["Machine Learning (ML) is taught by", "Dr Nisha Varghese"], True),
     ("is Deepa Jose free on Friday", Intent.PERSON_AVAILABILITY, ["1:45 pm to 3:45 pm"], True),
     ("what is Dr Nisha Varghese's phone number?", Intent.CONTACT_INFO, ["can't verify a phone number"], False),
     ("email of Dr Kavitha R", Intent.CONTACT_INFO, ["isn't listed"], False),

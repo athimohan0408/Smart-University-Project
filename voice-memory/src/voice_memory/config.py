@@ -45,6 +45,53 @@ class MemorySettings(_Section):
     send_prior_entities: bool
     max_prior_entities: int
     option_match_min: float
+    max_parts: int
+    origins_file: ModulePath | None = None
+
+
+class NamesSettings(_Section):
+    enabled: bool
+    auto_min: float
+    ask_min: float
+    margin: float
+    max_options: int
+
+
+class TaskPrompts(_Section):
+    ask_recipient_message: str
+    ask_recipient_meeting: str
+    which_one: str
+    ask_message: str
+    ask_visitor_name: str
+    ask_contact: str
+    ask_day: str
+    ask_time: str
+    ask_ampm: str
+    ask_purpose: str
+    bad_day: str
+    bad_time: str
+    bad_contact: str
+    confirm_message: str
+    confirm_meeting: str
+    sent_message: str
+    sent_meeting: str
+    cancelled: str
+    gave_up: str
+    option_yes: str
+    option_no: str
+    option_skip: str
+
+
+class TaskSettings(_Section):
+    enabled: bool
+    idle_s: float
+    max_retries: int
+    requests: ModulePath
+    webhook_timeout_s: float
+    meeting_days: list[str]
+    meeting_earliest: str
+    meeting_latest: str
+    prompts: TaskPrompts
 
 
 class HandoffSettings(_Section):
@@ -108,6 +155,8 @@ class Settings(_Section):
     rag: RagSettings
     kb: KBSettings
     memory: MemorySettings
+    names: NamesSettings
+    tasks: TaskSettings
     handoff: HandoffSettings
     speech: SpeechSettings
     stt: STTSettings
